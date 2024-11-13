@@ -13,6 +13,6 @@ import XCTest
 final class PackageViewTests: XCTestCase {
     func testExample() throws {
         let view = MyFeature.PackageView()
-        SumerSnapshotTestCase().snapshotTest(view: view, devices: [SumerSnapshotTestCase.Device.iPadPro129Landscape])
+        SumerSnapshotTestCase().snapshotTest(view: view)
     }
 }
