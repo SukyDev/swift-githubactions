@@ -1,0 +1,38 @@
+{
+  "configurations" : [
+    {
+      "id" : "950834C7-FC5A-42D8-BC40-2E44D65D7FE2",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:GithubActions.xcodeproj",
+        "identifier" : "80DAC9AC2CE39ADE00609BF6",
+        "name" : "GithubActionsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:GithubActions.xcodeproj",
+        "identifier" : "80DAC9B62CE39ADE00609BF6",
+        "name" : "GithubActionsUITests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:sumer-ios",
+        "identifier" : "MyFeatureTests",
+        "name" : "MyFeatureTests"
+      }
+    }
+  ],
+  "version" : 1
+}
