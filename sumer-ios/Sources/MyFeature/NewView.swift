@@ -6,7 +6,7 @@ public struct NewView: View {
 
     public var body: some View {
         VStack {
-            Text("NewView!")
+            Text("NewView New Version!")
         }
         .padding()
     }
