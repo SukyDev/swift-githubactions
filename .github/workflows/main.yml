@@ -15,6 +15,9 @@ jobs:
       with:
         lfs: true
 
+    - name: Checkout LFS objects
+      run: git lfs checkout
+
     - name: Setup Xcode version
       uses: maxim-lobanov/setup-xcode@v1.6.0
       with:
