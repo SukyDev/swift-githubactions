@@ -13,6 +13,7 @@
   },
   "testTargets" : [
     {
+      "parallelizable" : false,
       "target" : {
         "containerPath" : "container:GithubActions.xcodeproj",
         "identifier" : "80DAC9AC2CE39ADE00609BF6",
@@ -27,6 +28,7 @@
       }
     },
     {
+      "parallelizable" : false,
       "target" : {
         "containerPath" : "container:sumer-ios",
         "identifier" : "MyFeatureTests",
