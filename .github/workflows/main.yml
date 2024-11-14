@@ -26,4 +26,4 @@ jobs:
       run: /usr/bin/xcodebuild -version
 
     - name: Build and Test iOS
-      run: xcodebuild test -project GithubActions.xcodeproj -scheme GithubActions clean build -testPlan LfmTestPlan -sdk iphoneos -destination "platform=iOS Simulator,OS=17.5,name=iPhone SE (3rd generation)" CODE_SIGNING_ALLOWED=No
+      run: xcodebuild test -project GithubActions.xcodeproj -scheme GithubActions clean build -testPlan LfmTestPlan -sdk iphoneos -destination "platform=iOS Simulator,OS=18.1,name=iPhone SE (3rd generation)" CODE_SIGNING_ALLOWED=No
