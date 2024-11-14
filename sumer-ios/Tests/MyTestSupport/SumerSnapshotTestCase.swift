@@ -219,9 +219,9 @@ extension SumerSnapshotTestCase {
     }
 
     private func verifyDeviceOS() {
-        if UIDevice.current.systemVersion != "17.5" {
+        if UIDevice.current.systemVersion != "18.1" {
             continueAfterFailure = false
-            XCTFail("Snapshot tests must run on iOS 17.5")
+            XCTFail("Snapshot tests must run on iOS 18.1")
         }
     }
 
