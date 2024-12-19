@@ -2,29 +2,84 @@ name: main
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "vs/github-actions" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "vs/github-actions" ]
 
 jobs:
-  build-and-test:
-    runs-on: macos-15
+  test:
+    runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        lfs: true
+      - uses: actions/checkout@v4
 
-    - name: Checkout LFS objects
-      run: git lfs checkout
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.3'
 
-    - name: Setup Xcode version
-      uses: maxim-lobanov/setup-xcode@v1.6.0
-      with:
-        xcode-version: '16.1'
+      - name: Show build SDK
+        run: xcodebuild -showsdks 
+
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          # import certificate and provisioning profile from secrets
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+          echo -n "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode -o $PP_PATH
+          # create temporary keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          # import certificate to keychain
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          # apply provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+      - name: Build iOS application archive
+        run: |
+            cat $PWD/exportOptions.plist
+            xcodebuild clean -workspace CiCdTesting.xcworkspace -scheme CiCdTesting -configuration Prod
+            xcodebuild archive -workspace CiCdTesting.xcworkspace -scheme CiCdTesting -configuration Prod -archivePath $PWD/build/CiCdTesting.xcarchive INFOPLIST_FILE="$PWD/CiCdTesting/Info.plist"
+            xcodebuild -exportArchive -archivePath $PWD/build/CiCdTesting.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build
+
+      - name: Decode App Store Connect private key file and save it
+        env:
+            API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+            API_KEY: ${{ secrets.KEY_ID }}     
+        run: |
+            mkdir -p ~/private_keys
+            ls ~/private_keys
+            echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
+            echo "After saving: "
+            ls ~/private_keys
+  
+      - name: Upload to App Store Connect
+        env:
+            ISSUER_ID: ${{ secrets.ISSUER_ID }}          
+            API_KEY: ${{ secrets.KEY_ID }}     
+        run: |
+            echo "Before uploading: "
+            ls ~/private_keys
+            xcrun altool --upload-app -f build/CiCdTesting.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
+            ls ~/private_keys
+  
+      - name: Clean up keychain and provisioning profile
+        if: ${{ always() }}
+        run: |
+          # Delete the temporary keychain
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
       
-    - name: Xcode version
-      run: /usr/bin/xcodebuild -version
-
-    - name: Build and Test iOS
-      run: xcodebuild test -project GithubActions.xcodeproj -scheme GithubActions clean build -testPlan LfmTestPlan -sdk iphoneos -destination "platform=iOS Simulator,OS=18.1,name=iPhone SE (3rd generation)" CODE_SIGNING_ALLOWED=No
+          # Remove the provisioning profile used for the project
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/CiCdTesting.mobileprovision
