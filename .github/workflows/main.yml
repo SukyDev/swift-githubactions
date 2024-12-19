@@ -72,7 +72,7 @@ jobs:
         run: |
             echo "Before uploading: "
             ls ~/private_keys
-            xcrun altool --upload-app -f build/CiCdTesting.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
+            xcrun altool --upload-app -f build/GithubActions.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
             ls ~/private_keys
   
       - name: Clean up keychain and provisioning profile
@@ -82,4 +82,4 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
       
           # Remove the provisioning profile used for the project
-          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/CiCdTesting.mobileprovision
+          rm -f ~/Library/MobileDevice/Provisioning\ Profiles/GithubActions.mobileprovision
