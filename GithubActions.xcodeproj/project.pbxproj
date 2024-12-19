@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		8086DAE52CE4C3520018C023 /* MyFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 8086DAE42CE4C3520018C023 /* MyFeature */; };
-		8086DAE82CE4C4620018C023 /* Xcore in Frameworks */ = {isa = PBXBuildFile; productRef = 8086DAE72CE4C4620018C023 /* Xcore */; };
 		80DAC9A02CE39ADD00609BF6 /* GithubActionsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80DAC99F2CE39ADD00609BF6 /* GithubActionsApp.swift */; };
 		80DAC9A22CE39ADD00609BF6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80DAC9A12CE39ADD00609BF6 /* ContentView.swift */; };
 		80DAC9A42CE39ADE00609BF6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 80DAC9A32CE39ADE00609BF6 /* Assets.xcassets */; };
@@ -57,7 +56,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8086DAE82CE4C4620018C023 /* Xcore in Frameworks */,
 				8086DAE52CE4C3520018C023 /* MyFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,7 +235,6 @@
 			mainGroup = 80DAC9932CE39ADD00609BF6;
 			packageReferences = (
 				8086DADD2CE4C1B90018C023 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
-				8086DAE62CE4C4620018C023 /* XCRemoteSwiftPackageReference "xcore" */,
 			);
 			productRefGroup = 80DAC99D2CE39ADD00609BF6 /* Products */;
 			projectDirPath = "";
@@ -673,25 +670,12 @@
 				version = 1.17.5;
 			};
 		};
-		8086DAE62CE4C4620018C023 /* XCRemoteSwiftPackageReference "xcore" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/luismachado/xcore";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		8086DAE42CE4C3520018C023 /* MyFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MyFeature;
-		};
-		8086DAE72CE4C4620018C023 /* Xcore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 8086DAE62CE4C4620018C023 /* XCRemoteSwiftPackageReference "xcore" */;
-			productName = Xcore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
