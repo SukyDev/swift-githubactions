@@ -77,7 +77,7 @@ jobs:
         run: |
             echo "Before uploading: "
             ls ~/private_keys
-            xcrun altool --upload-app -f build/GithubActions.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
+            xcrun altool --upload-app -f build/LFM-GHactions.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
             ls ~/private_keys
   
       - name: Clean up keychain and provisioning profile
