@@ -50,9 +50,9 @@ jobs:
       - name: Build iOS application archive
         run: |
             cat $PWD/exportOptions.plist
-            xcodebuild clean -workspace CiCdTesting.xcworkspace -scheme CiCdTesting -configuration Prod
-            xcodebuild archive -workspace CiCdTesting.xcworkspace -scheme CiCdTesting -configuration Prod -archivePath $PWD/build/CiCdTesting.xcarchive INFOPLIST_FILE="$PWD/CiCdTesting/Info.plist"
-            xcodebuild -exportArchive -archivePath $PWD/build/CiCdTesting.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build
+            xcodebuild clean -workspace GithubActions.xcworkspace -scheme GithubActions -configuration Prod
+            xcodebuild archive -workspace GithubActions.xcworkspace -scheme GithubActions -configuration Prod -archivePath $PWD/build/GithubActions.xcarchive INFOPLIST_FILE="$PWD/GithubActions/Info.plist"
+            xcodebuild -exportArchive -archivePath $PWD/build/GithubActions.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build
 
       - name: Decode App Store Connect private key file and save it
         env:
