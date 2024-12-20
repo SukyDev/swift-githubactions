@@ -130,6 +130,7 @@ jobs:
           xcodebuild test \
             -scheme MyFeature \
             -destination "platform=iOS Simulator,name=iPhone 13" \
+            -sdk iphonesimulator \
             -only-testing:MyFeatureTests \
             | xcpretty && exit ${PIPESTATUS[0]}
 
