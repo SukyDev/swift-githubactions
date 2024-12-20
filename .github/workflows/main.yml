@@ -52,6 +52,17 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
+      # Make sure that scheme includes the test target
+      - name: List Scheme Information
+        run: |
+          xcodebuild -project GithubActions.xcodeproj - list
+          xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings
+
+      # Verify cofiguration
+      - name: Show Test Target Configuration
+        run: |
+          xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings | grep -i "test"
+
       # Run the snapshot tests using xcodebuild
       - name: Run Snapshot Tests
         run: |
@@ -60,8 +71,8 @@ jobs:
           -scheme MyFeature \
           -destination 'platform=iOS Simulator,name=iPhone 13' \
           -sdk iphonesimulator \
-          -only-testing:MyFeatureTests
-
+          -only-testing:MyFeatureTests \
+          -verbose
 
       - name: Check for existing snapshots in external repo
         env:
