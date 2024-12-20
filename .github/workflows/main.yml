@@ -111,10 +111,9 @@ jobs:
           ls -la snapshots_repo/ReferenceImages/
           
           # Get a list of all files excluding .gitkeep
-          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ | grep -v '.gitkeep')
-          FILE_COUNT=$(echo "$SNAPSHOT_FILES" | wc -l)
-          echo "Found $FILE_COUNT snapshot files (excluding .gitkeep)."
+          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ | grep -v -e '.gitkeep' -e '^\.$' -e '^\..\$')
           
+          # Check if there are any snapshot files after excluding .gitkeep
           if [ -z "$SNAPSHOT_FILES" ]; then
             echo "No snapshots found, recording new snapshots."
             echo "false" > $PWD/record_snapshots.txt
@@ -122,6 +121,10 @@ jobs:
             echo "Snapshots found, proceeding to comparison tests."
             echo "true" > $PWD/record_snapshots.txt
           fi
+
+          # Debug output: List the files that are considered as snapshots
+          echo "Snapshot files excluding .gitkeep:"
+          echo "$SNAPSHOT_FILES"
   
       - name: Record New Snapshot Images (if not exist)
         if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'false'
