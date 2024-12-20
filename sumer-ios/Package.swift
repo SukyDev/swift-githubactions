@@ -6,7 +6,8 @@ import PackageDescription
 let package = Package(
     name: "sumer-ios",
     platforms: [
-        .iOS(.v17)
+        .iOS(.v17),
+        .macOS(.v10_15)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -18,23 +19,19 @@ let package = Package(
         .package(
             url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
             .exactItem("1.17.5")
-        ),
-        .package(
-            url: "https://github.com/luismachado/xcore",
-            .upToNextMajor(from: "1.0.1")
-        ),
+        )
     ],
     
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MyFeature"),
+            name: "MyFeature"
+        ),
         .target(
             name: "MyTestSupport",
             dependencies: [
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
-                .product(name: "Xcore", package: "Xcore")
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
             ],
             path: "Tests/MyTestSupport",
             exclude: [
