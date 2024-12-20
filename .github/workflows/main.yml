@@ -110,10 +110,10 @@ jobs:
           echo "Listing snapshot files in ReferenceImages directory:"
           ls -la snapshots_repo/ReferenceImages/
           
-          # Check if there are any snapshot images
-          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ 2>/dev/null)
+          # Get a list of all files excluding .gitkeep
+          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ | grep -v '.gitkeep')
           FILE_COUNT=$(echo "$SNAPSHOT_FILES" | wc -l)
-          echo "Found $FILE_COUNT snapshot files."
+          echo "Found $FILE_COUNT snapshot files (excluding .gitkeep)."
           
           if [ -z "$SNAPSHOT_FILES" ]; then
             echo "No snapshots found, recording new snapshots."
