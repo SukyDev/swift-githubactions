@@ -146,22 +146,40 @@ jobs:
             cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
           fi
 
-      - name: Run Snapshot Tests
+      - name: Build and Test
         run: |
+          # Clean DerivedData
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          
+          # Build test target
+          xcodebuild build-for-testing \
+            -project GithubActions.xcodeproj \
+            -scheme MyFeature \
+            -destination 'platform=iOS Simulator,name=iPhone 13' \
+            -configuration Debug \
+            ENABLE_TESTABILITY=YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            GCC_GENERATE_TEST_COVERAGE_FILES=YES
+      
+          # Verify test bundle exists
+          TEST_BUNDLE_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "MyFeatureTests.xctest")
+          echo "Test bundle path: $TEST_BUNDLE_PATH"
+          
+          if [ -z "$TEST_BUNDLE_PATH" ]; then
+            echo "Test bundle not found!"
+            find ~/Library/Developer/Xcode/DerivedData -type d
+            exit 1
+          fi
+      
+          # Run tests
           xcodebuild test-without-building \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
-            -destination "platform=iOS Simulator,name=iPhone 13" \
-            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 13' \
             -only-testing:MyFeatureTests \
             | xcpretty && exit ${PIPESTATUS[0]}
-
-      - name: Check Build Products After Build
-        if: always()
-        run: |
-          echo "=== BUILD PRODUCTS AFTER BUILD ==="
-          find ~/Library/Developer/Xcode/DerivedData -type d -name "Build"
-          find ~/Library/Developer/Xcode/DerivedData -type f -name "*.xctest"
 
       - name: Record New Snapshot Images
         if: success()
