@@ -113,6 +113,8 @@ jobs:
           ls -la snapshots_repo/ReferenceImages/
 
       - name: Record New Snapshot Images
+        env:
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
           # Debug: Print current directory and list contents
           echo "Current directory: $PWD"
@@ -163,6 +165,7 @@ jobs:
           if git status --porcelain | grep -q '^'; then
             git add ReferenceImages/*/*.png
             git commit -m "Add new snapshot images"
+            git remote set-url origin https://${REPO_TOKEN}@github.com/SukyDev/GitStorageForSnapshots.git
             git push origin main
           else
             echo "No new snapshots to commit"
