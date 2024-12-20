@@ -151,7 +151,6 @@ jobs:
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.2" \
             -destination "platform=iOS Simulator,name=iPhone 13,OS=17.2" \
             -only-testing:MyFeatureTests
         
