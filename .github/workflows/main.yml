@@ -63,18 +63,6 @@ jobs:
         run: |
           xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings | grep -i "test"
 
-      - name: Build Test Target
-        run: |
-          xcodebuild build-for-testing \
-            -project GithubActions.xcodeproj \
-            -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone 13' \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            ONLY_ACTIVE_ARCH=YES \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=NO \
-            ENABLE_TESTABILITY=YES
-      
       - name: Check Build Products After Build
         if: always()
         run: |
@@ -156,6 +144,7 @@ jobs:
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -destination 'platform=iOS Simulator,name=iPhone 13' \
+            -sdk iphonesimulator \
             -configuration Debug \
             ENABLE_TESTABILITY=YES \
             CODE_SIGN_IDENTITY="" \
