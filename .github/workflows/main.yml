@@ -137,61 +137,45 @@ jobs:
       - name: Record New Snapshot Images
         if: success()
         env:
-          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
-          # Debug: Print current directory and list contents
-          echo "Current directory: $PWD"
-          ls -la
+          # Configure Git
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
           
-          # Try to find the MyTestSupport directory
-          echo "Searching for MyTestSupport directory..."
-          find . -type d -name "MyTestSupport"
-          
-          # Create base directory structure in the snapshots repo
+          # Create base directory structure
           mkdir -p snapshots_repo/ReferenceImages
       
-          # Update the source directory path to include the package
           SOURCE_DIR="./sumer-ios/Tests/MyTestSupport/ReferenceImages"
-          echo "Looking for source directory at: $SOURCE_DIR"
           
           if [ -d "$SOURCE_DIR" ]; then
-            echo "Found source directory"
             for view_folder in "$SOURCE_DIR"/*/ ; do
               if [ -d "$view_folder" ]; then
                 VIEW_NAME=$(basename "$view_folder")
                 TARGET_DIR="snapshots_repo/ReferenceImages/$VIEW_NAME"
                 
-                # Create target directory if it doesn't exist
                 mkdir -p "$TARGET_DIR"
                 
-                # Copy only new files that don't exist in the target
                 for image in "$view_folder"*.png; do
                   if [ -f "$image" ]; then
                     filename=$(basename "$image")
-                    if [ ! -f "$TARGET_DIR/$filename" ]; then
-                      echo "Copying new snapshot: $filename to $TARGET_DIR"
+                    if [ ! -f "$TARGET_DIR/$filename" ] || ! cmp -s "$image" "$TARGET_DIR/$filename"; then
+                      echo "Updating snapshot: $filename in $TARGET_DIR"
                       cp "$image" "$TARGET_DIR/"
                     fi
                   fi
                 done
               fi
             done
-          else
-            echo "Warning: Source directory $SOURCE_DIR not found"
-            echo "Listing contents of ./sumer-ios/Tests directory:"
-            ls -la ./sumer-ios/Tests || echo "Tests directory not found"
-            exit 0
           fi
       
-          # Commit and push only if there are changes
+          # Git operations
           cd snapshots_repo
           if git status --porcelain | grep -q '^'; then
             git add ReferenceImages/*/*.png
-            git commit -m "Add new snapshot images"
-            git remote set-url origin https://${REPO_TOKEN}@github.com/SukyDev/GitStorageForSnapshots.git
+            git commit -m "Update snapshot images"
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/SukyDev/GitStorageForSnapshots.git
             git push origin main
-          else
-            echo "No new snapshots to commit"
           fi
 
     #  - name: Build iOS application archive
