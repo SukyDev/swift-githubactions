@@ -114,64 +114,52 @@ jobs:
 
       - name: Record New Snapshot Images
         run: |
-          # Create directories
-          mkdir -p $PWD/snapshots/ReferenceImages
+          # Create base directory structure in the snapshots repo
+          mkdir -p snapshots_repo/ReferenceImages
+      
+          # Find all snapshot test files to determine which views need folders
+          TEST_FILES=$(find . -path "*/MyFeatureTests/*.swift" -type f -name "*Tests.swift")
           
-          # Search more broadly for snapshot files
-          echo "Searching for snapshot files..."
-          find ~/Library/Developer/Xcode/DerivedData -type f -name "*.png"
-          
-          # If snapshots exist anywhere in DerivedData, copy them
-          SNAPSHOT_FILES=$(find ~/Library/Developer/Xcode/DerivedData -type f -name "*.png")
-          if [ -n "$SNAPSHOT_FILES" ]; then
-            echo "Found snapshot files, copying..."
-            cp $SNAPSHOT_FILES $PWD/snapshots/ReferenceImages/
+          # Create view-specific folders based on test file names
+          for file in $TEST_FILES; do
+            VIEW_NAME=$(basename $file .swift | sed 's/Tests$//')
+            mkdir -p "snapshots_repo/ReferenceImages/$VIEW_NAME"
+          done
+      
+          # Find generated snapshot images from test runs
+          SOURCE_DIR="MyTestSupport/ReferenceImages"
+          if [ -d "$SOURCE_DIR" ]; then
+            for view_folder in "$SOURCE_DIR"/*/ ; do
+              if [ -d "$view_folder" ]; then
+                VIEW_NAME=$(basename "$view_folder")
+                TARGET_DIR="snapshots_repo/ReferenceImages/$VIEW_NAME"
+                
+                # Copy only new files that don't exist in the target
+                for image in "$view_folder"*.png; do
+                  if [ -f "$image" ]; then
+                    filename=$(basename "$image")
+                    if [ ! -f "$TARGET_DIR/$filename" ]; then
+                      echo "Copying new snapshot: $filename to $TARGET_DIR"
+                      cp "$image" "$TARGET_DIR/"
+                    fi
+                  fi
+                done
+              fi
+            done
           else
-            echo "Warning: No snapshot files found"
-            # Don't exit with error - just warn
+            echo "Warning: Source directory $SOURCE_DIR not found"
             exit 0
           fi
-          
-          # Only attempt git operations if we have files to commit
-          if [ -d "snapshots_repo" ] && [ "$(ls -A $PWD/snapshots/ReferenceImages/)" ]; then
-            cd snapshots_repo
-            git add ReferenceImages/*.png || true
-            git commit -m "Add new snapshot images" || true
-            git push origin main || true
+      
+          # Commit and push only if there are changes
+          cd snapshots_repo
+          if git status --porcelain | grep -q '^'; then
+            git add ReferenceImages/*/*.png
+            git commit -m "Add new snapshot images"
+            git push origin main
+          else
+            echo "No new snapshots to commit"
           fi
-        
-
-      # Step 3: Compare New Snapshots with Existing Ones (optional, only if you want to compare the new images)
-      - name: Compare New Snapshots with Existing Ones
-        run: |
-          # Compare the new snapshots with the existing snapshots in the external repo
-          NEW_SNAPSHOTS=$(ls ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots/*.png)
-          EXISTING_SNAPSHOTS=$(ls snapshots_repo/ReferenceImages/*.png)
-          
-          # For each new snapshot, check if it exists in the external repo
-          for NEW_SNAPSHOT in $NEW_SNAPSHOTS; do
-            SNAPSHOT_NAME=$(basename "$NEW_SNAPSHOT")
-            if ! grep -q "$SNAPSHOT_NAME" <<< "$EXISTING_SNAPSHOTS"; then
-              echo "New snapshot $SNAPSHOT_NAME doesn't exist in the external repo, adding it."
-              cp "$NEW_SNAPSHOT" snapshots_repo/ReferenceImages/
-              cd snapshots_repo
-              git add ReferenceImages/$SNAPSHOT_NAME
-              git commit -m "Add new snapshot $SNAPSHOT_NAME"
-              git push origin main  # Or your desired branch name
-            else
-              echo "Snapshot $SNAPSHOT_NAME already exists, comparing..."
-              # Use a tool or library to compare the images
-              # Example: `cmp` or other image comparison tools
-              cmp -s "$NEW_SNAPSHOT" "snapshots_repo/ReferenceImages/$SNAPSHOT_NAME" || {
-                echo "Snapshot $SNAPSHOT_NAME differs from the reference image. Updating..."
-                cp "$NEW_SNAPSHOT" snapshots_repo/ReferenceImages/
-                cd snapshots_repo
-                git add ReferenceImages/$SNAPSHOT_NAME
-                git commit -m "Update snapshot $SNAPSHOT_NAME"
-                git push origin main
-              }
-            fi
-          done
 
     #  - name: Build iOS application archive
     #    run: |
