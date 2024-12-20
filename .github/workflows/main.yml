@@ -92,11 +92,6 @@ jobs:
       #     -only-testing:MyFeatureTests \
       #     -verbose
 
-      jobs:
-  test:
-    runs-on: macos-latest
-    
-    steps:
       # Step 1: Check for existing snapshots in external repo
       - name: Check for existing snapshots in external repo
         env:
@@ -181,8 +176,6 @@ jobs:
               }
             fi
           done
-
-          
 
     #  - name: Build iOS application archive
     #    run: |
