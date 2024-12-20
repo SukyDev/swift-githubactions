@@ -97,13 +97,24 @@ jobs:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}  # GitHub PAT for repo access
           SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"  # External repository
         run: |
-          # Check if snapshot files exist in the external repository
+          # Clone the external repository
           git clone https://x-access-token:${REPO_TOKEN}@github.com/${SNAPSHOT_REPO}.git snapshots_repo
           
-          # List files in the external snapshots repo
-          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/)
-
-          # Check if there are any existing snapshot images
+          # Check if the ReferenceImages directory exists
+          if [ ! -d "snapshots_repo/ReferenceImages" ]; then
+            echo "Directory ReferenceImages does not exist."
+            exit 1
+          fi
+          
+          # List files in the external snapshots repo for debugging
+          echo "Listing snapshot files in ReferenceImages directory:"
+          ls -la snapshots_repo/ReferenceImages/
+          
+          # Check if there are any snapshot images
+          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ 2>/dev/null)
+          FILE_COUNT=$(echo "$SNAPSHOT_FILES" | wc -l)
+          echo "Found $FILE_COUNT snapshot files."
+          
           if [ -z "$SNAPSHOT_FILES" ]; then
             echo "No snapshots found, recording new snapshots."
             echo "false" > $PWD/record_snapshots.txt
