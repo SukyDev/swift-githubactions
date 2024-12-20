@@ -55,7 +55,7 @@ jobs:
       # Run the snapshot tests using xcodebuild
       - name: Run Snapshot Tests
         run: |
-          xcodebuild test -project GithubActions.xcodeproj -scheme MyFeature -destination 'platform=iOS Simulator,name=iPhone SE' -only-testing:MyFeatureTests
+          xcodebuild test -project GithubActions.xcodeproj -scheme MyFeature -destination 'platform=iOS Simulator,name=iPhone 13' -only-testing:MyFeatureTests
 
 
       - name: Check for existing snapshots in external repo
