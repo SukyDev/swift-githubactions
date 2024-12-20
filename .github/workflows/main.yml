@@ -68,7 +68,7 @@ jobs:
           xcodebuild build-for-testing \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' \
+            -destination 'platform=iOS Simulator,name=iPhone 13,OS=17.2' \
             -sdk iphonesimulator \
             -configuration Debug \
             ONLY_ACTIVE_ARCH=YES \
@@ -183,7 +183,7 @@ jobs:
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation)" \
+            -destination "platform=iOS Simulator,name=iPhone 13,OS=17.2" \
             -only-testing:MyFeatureTests
       
       - name: Verify Test Bundle
