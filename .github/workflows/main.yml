@@ -146,41 +146,47 @@ jobs:
             cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
           fi
 
-      - name: Build and Test
+      - name: Build Test Target
         run: |
-          # Clean DerivedData
+          # Clean DerivedData first
           rm -rf ~/Library/Developer/Xcode/DerivedData
           
-          # Build test target
           xcodebuild build-for-testing \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone 13' \
             -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' \
             -configuration Debug \
             ENABLE_TESTABILITY=YES \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            GCC_GENERATE_TEST_COVERAGE_FILES=YES
-      
-          # Verify test bundle exists
-          TEST_BUNDLE_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "MyFeatureTests.xctest")
-          echo "Test bundle path: $TEST_BUNDLE_PATH"
-          
-          if [ -z "$TEST_BUNDLE_PATH" ]; then
-            echo "Test bundle not found!"
-            find ~/Library/Developer/Xcode/DerivedData -type d
-            exit 1
-          fi
-      
-          # Run tests
+            -derivedDataPath ./DerivedData
+        
+      - name: Run Snapshot Tests
+        run: |
           xcodebuild test-without-building \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone 13' \
-            -only-testing:MyFeatureTests \
-            | xcpretty && exit ${PIPESTATUS[0]}
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' \
+            -derivedDataPath ./DerivedData
+      
+      - name: Verify Test Bundle
+        run: |
+          TEST_BUNDLE_PATH="./DerivedData/Build/Products/Debug-iphonesimulator/MyFeatureTests.xctest"
+          
+          if [ -d "$TEST_BUNDLE_PATH" ]; then
+            echo "Test bundle exists at: $TEST_BUNDLE_PATH"
+            ls -la "$TEST_BUNDLE_PATH"
+            
+            if [ -f "$TEST_BUNDLE_PATH/Info.plist" ]; then
+              echo "Info.plist exists"
+              plutil -p "$TEST_BUNDLE_PATH/Info.plist"
+            else
+              echo "Info.plist is missing"
+            fi
+          else
+            echo "Test bundle not found at expected path"
+            find ./DerivedData -name "*.xctest"
+          fi
 
       - name: Record New Snapshot Images
         if: success()
