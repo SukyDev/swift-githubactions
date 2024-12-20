@@ -112,47 +112,17 @@ jobs:
           echo "Listing snapshot files in ReferenceImages directory:"
           ls -la snapshots_repo/ReferenceImages/
 
-          - name: Fetch Reference Snapshots
-          run: |
-            git clone https://github.com/SukyDev/GitStorageForSnapshots.git reference_snapshots
-            mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages
-            if [ -d "reference_snapshots/ReferenceImages" ]; then
-              cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
-            fi
-        
-      - name: Build and Test
+      - name: Fetch Reference Snapshots
         run: |
-          # First build for testing to ensure everything is compiled
-          xcodebuild build-for-testing \
-            -workspace sumer-ios/Package.swift \
-            -scheme MyFeatureTests \
-            -destination "platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2" \
-            -sdk iphonesimulator
+          # Clone the snapshots repository
+          git clone https://github.com/SukyDev/GitStorageForSnapshots.git reference_snapshots
           
-          # Then run the tests
-          xcodebuild test-without-building \
-            -workspace sumer-ios/Package.swift \
-            -scheme MyFeatureTests \
-            -destination "platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2" \
-            -sdk iphonesimulator
-        
-      - name: Record New Snapshots
-        if: success()
-        env:
-          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-        run: |
-          cd snapshots_repo
+          # Create directory if it doesn't exist
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages
           
-          # Only if there are differences, commit and push
-          if [ -n "$(git status --porcelain)" ]; then
-            git config --global user.name "GitHub Actions Bot"
-            git config --global user.email "actions@github.com"
-            git add ReferenceImages/*/*.png
-            git commit -m "Update snapshot images"
-            git remote set-url origin https://${GITHUB_TOKEN}@github.com/SukyDev/GitStorageForSnapshots.git
-            git push origin main
-          else
-            echo "No snapshot changes detected"
+          # Copy existing reference images to the test directory
+          if [ -d "reference_snapshots/ReferenceImages" ]; then
+            cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
           fi
 
       - name: Run Snapshot Tests
@@ -163,6 +133,13 @@ jobs:
             -sdk iphonesimulator \
             -only-testing:MyFeatureTests \
             | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Check Build Products After Build
+        if: always()
+        run: |
+          echo "=== BUILD PRODUCTS AFTER BUILD ==="
+          find ~/Library/Developer/Xcode/DerivedData -type d -name "Build"
+          find ~/Library/Developer/Xcode/DerivedData -type f -name "*.xctest"
 
       - name: Record New Snapshot Images
         if: success()
