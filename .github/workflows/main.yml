@@ -143,32 +143,52 @@ jobs:
           mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/PackageView
           mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/SimpleView
         
-      - name: Record Initial Snapshots
+      - name: Build and Test with Snapshots
         env:
           RECORD_SNAPSHOTS: "1"
         run: |
-          xcodebuild test \
+          # Create directory structure first
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/NewView
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/PackageView
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/SimpleView
+          
+          # First build for testing
+          xcodebuild build-for-testing \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.2" \
             -destination "platform=iOS Simulator,name=iPhone 13,OS=17.2" \
-            -only-testing:MyFeatureTests
+            -derivedDataPath ./DerivedData
+          
+          # Verify test bundle exists
+          TEST_BUNDLE_PATH="./DerivedData/Build/Products/Debug-iphonesimulator/MyFeatureTests.xctest"
+          if [ ! -d "$TEST_BUNDLE_PATH" ]; then
+            echo "Test bundle not found at $TEST_BUNDLE_PATH"
+            exit 1
+          fi
+          
+          # Run tests
+          xcodebuild test-without-building \
+            -project GithubActions.xcodeproj \
+            -scheme MyFeature \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.2" \
+            -destination "platform=iOS Simulator,name=iPhone 13,OS=17.2" \
+            -derivedDataPath ./DerivedData
         
-      - name: Record New Snapshot Images
+      - name: Record New Snapshots
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
-          # Configure Git
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
+          # Copy snapshots to the repository
+          cp -R ./sumer-ios/Tests/MyTestSupport/ReferenceImages/* snapshots_repo/ReferenceImages/
+          
           cd snapshots_repo
-          
-          # Copy new snapshots from test directory
-          cp -R ../sumer-ios/Tests/MyTestSupport/ReferenceImages/* ReferenceImages/
-          
-          # Commit and push if there are changes
           if git status --porcelain | grep -q '^'; then
             git add ReferenceImages/*/*.png
             git commit -m "Update snapshot images"
