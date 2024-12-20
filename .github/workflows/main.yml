@@ -74,11 +74,11 @@ jobs:
             -configuration Debug
 
       - name: Run Tests 
-        run: | 
-          xcodebuild test-without-building \ 
-            -project GithubActions.xcodeproj \ 
-            -scheme MyFeature \ 
-            -destination 'platform=iOS Simulator,name=iPhone 13' \ 
+        run: |
+          xcodebuild test-without-building \
+            -project GithubActions.xcodeproj \
+            -scheme MyFeature \
+            -destination 'platform=iOS Simulator,name=iPhone 13' \
             -configuration Debug
 
       # Run the snapshot tests using xcodebuild
