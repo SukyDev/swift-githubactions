@@ -142,21 +142,40 @@ jobs:
           mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/NewView
           mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/PackageView
           mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/SimpleView
-          
-          # Copy existing reference images if they exist
-          if [ -d "reference_snapshots/ReferenceImages" ]; then
-            cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
-          fi
         
       - name: Record Initial Snapshots
+        env:
+          RECORD_SNAPSHOTS: "1"
         run: |
-          # First run to generate initial snapshots
-          RECORD_SNAPSHOTS=1 xcodebuild test \
+          xcodebuild test \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation)" \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.2" \
+            -destination "platform=iOS Simulator,name=iPhone 13,OS=17.2" \
             -only-testing:MyFeatureTests
+        
+      - name: Record New Snapshot Images
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
+        run: |
+          # Configure Git
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          
+          cd snapshots_repo
+          
+          # Copy new snapshots from test directory
+          cp -R ../sumer-ios/Tests/MyTestSupport/ReferenceImages/* ReferenceImages/
+          
+          # Commit and push if there are changes
+          if git status --porcelain | grep -q '^'; then
+            git add ReferenceImages/*/*.png
+            git commit -m "Update snapshot images"
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/SukyDev/GitStorageForSnapshots.git
+            git push origin main
+          fi
       
       - name: Run Comparison Tests
         run: |
