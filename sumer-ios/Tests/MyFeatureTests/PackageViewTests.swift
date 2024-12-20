@@ -12,9 +12,7 @@ import XCTest
 
 final class PackageViewTests: XCTestCase {
     func testExample() throws {
-        #if canImport(UIKit)
         let view = MyFeature.PackageView()
         SumerSnapshotTestCase().snapshotTest(view: view)
-        #endif
     }
 }
