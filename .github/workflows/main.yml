@@ -92,7 +92,7 @@ jobs:
       #     -only-testing:MyFeatureTests \
       #     -verbose
 
-      # Step 1: Check for existing snapshots in external repo
+      # Step 1: Check for existing snapshots in external repo (this will now only check for the ReferenceImages folder)
       - name: Check for existing snapshots in external repo
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}  # GitHub PAT for repo access
@@ -104,33 +104,16 @@ jobs:
           
           # Check if the ReferenceImages directory exists
           if [ ! -d "snapshots_repo/ReferenceImages" ]; then
-            echo "Directory ReferenceImages does not exist."
-            exit 1
+            echo "Directory ReferenceImages does not exist. Creating it."
+            mkdir -p snapshots_repo/ReferenceImages
           fi
           
           # List files in the external snapshots repo for debugging
           echo "Listing snapshot files in ReferenceImages directory:"
           ls -la snapshots_repo/ReferenceImages/
-          
-          # Get a list of all files excluding .gitkeep
-          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/ | grep -v -e '.gitkeep' -e '^\.$' -e '^\..\$')
-          
-          # Check if there are any snapshot files after excluding .gitkeep
-          if [ -z "$SNAPSHOT_FILES" ]; then
-            echo "No snapshots found, recording new snapshots."
-            echo "false" > $PWD/record_snapshots.txt
-          else
-            echo "Snapshots found, proceeding to comparison tests."
-            echo "true" > $PWD/record_snapshots.txt
-          fi
 
-          # Debug output: List the files that are considered as snapshots
-          echo "Snapshot files excluding .gitkeep:"
-          echo "$SNAPSHOT_FILES"
-
-      # Step 2: Record New Snapshot Images (if no existing snapshots)
-      - name: Record New Snapshot Images (if not exist)
-        if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'false'
+      # Step 2: Record New Snapshot Images (this step will always run now)
+      - name: Record New Snapshot Images
         run: |
           # Create a directory for snapshots if not already created
           mkdir -p $PWD/snapshots/ReferenceImages
@@ -144,9 +127,8 @@ jobs:
           git commit -m "Add new snapshot images"
           git push origin main  # Or your desired branch name
 
-      # Step 3: Compare New Snapshots with Existing Ones
+      # Step 3: Compare New Snapshots with Existing Ones (optional, only if you want to compare the new images)
       - name: Compare New Snapshots with Existing Ones
-        if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'true'
         run: |
           # Compare the new snapshots with the existing snapshots in the external repo
           NEW_SNAPSHOTS=$(ls ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots/*.png)
