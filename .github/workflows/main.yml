@@ -65,14 +65,15 @@ jobs:
 
       - name: Build Test Target
         run: |
-          xcodebuild build \
+          xcodebuild build-for-testing \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -destination 'platform=iOS Simulator,name=iPhone 13' \
             -sdk iphonesimulator \
             -configuration Debug \
             ONLY_ACTIVE_ARCH=YES \
-            -verbose
+            BUILD_LIBRARY_FOR_DISTRIBUTION=NO \
+            ENABLE_TESTABILITY=YES
       
       - name: Check Build Products After Build
         if: always()
@@ -80,6 +81,26 @@ jobs:
           echo "=== BUILD PRODUCTS AFTER BUILD ==="
           find ~/Library/Developer/Xcode/DerivedData -type d -name "Build"
           find ~/Library/Developer/Xcode/DerivedData -type f -name "*.xctest"
+
+      - name: Verify Test Bundle
+        run: |
+          echo "Looking for test bundle..."
+          find ~/Library/Developer/Xcode/DerivedData -name "MyFeatureTests.xctest"
+          
+          TEST_BUNDLE_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "MyFeatureTests.xctest")
+          if [ -z "$TEST_BUNDLE_PATH" ]; then
+            echo "Test bundle not found!"
+            exit 1
+          else
+            echo "Found test bundle at: $TEST_BUNDLE_PATH"
+            ls -la "$TEST_BUNDLE_PATH"
+          fi
+
+      - name: List Scheme Information
+        run: |
+          xcodebuild -project GithubActions.xcodeproj -list
+          xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings
+          xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showTestPlans
 
       # Run the snapshot tests using xcodebuild
       # - name: Run Snapshot Tests
@@ -127,7 +148,8 @@ jobs:
 
       - name: Run Snapshot Tests
         run: |
-          xcodebuild test \
+          xcodebuild test-without-building \
+            -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -destination "platform=iOS Simulator,name=iPhone 13" \
             -sdk iphonesimulator \
