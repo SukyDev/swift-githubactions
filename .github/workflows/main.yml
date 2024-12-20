@@ -55,7 +55,7 @@ jobs:
       # Make sure that scheme includes the test target
       - name: List Scheme Information
         run: |
-          xcodebuild -project GithubActions.xcodeproj - list
+          xcodebuild -project GithubActions.xcodeproj -list
           xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings
 
       # Verify cofiguration
