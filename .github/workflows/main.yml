@@ -68,7 +68,7 @@ jobs:
           xcodebuild build-for-testing \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone 13' \
+            -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation)' \
             -sdk iphonesimulator \
             -configuration Debug \
             ONLY_ACTIVE_ARCH=YES \
@@ -138,36 +138,35 @@ jobs:
           # Clone the snapshots repository
           git clone https://github.com/SukyDev/GitStorageForSnapshots.git reference_snapshots
           
-          # Create directory if it doesn't exist
-          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages
+          # Create directory structure
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/NewView
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/PackageView
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages/SimpleView
           
-          # Copy existing reference images to the test directory
+          # Copy existing reference images if they exist
           if [ -d "reference_snapshots/ReferenceImages" ]; then
             cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
           fi
-
-      - name: Build Test Target
-        run: |
-          # Clean DerivedData first
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          
-          xcodebuild build-for-testing \
-            -project GithubActions.xcodeproj \
-            -scheme MyFeature \
-            -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' \
-            -configuration Debug \
-            ENABLE_TESTABILITY=YES \
-            -derivedDataPath ./DerivedData
         
-      - name: Run Snapshot Tests
+      - name: Record Initial Snapshots
         run: |
-          xcodebuild test-without-building \
+          # First run to generate initial snapshots
+          RECORD_SNAPSHOTS=1 xcodebuild test \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -sdk iphonesimulator \
-            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.2' \
-            -derivedDataPath ./DerivedData
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation)" \
+            -only-testing:MyFeatureTests
+      
+      - name: Run Comparison Tests
+        run: |
+          # Now run comparison tests
+          xcodebuild test \
+            -project GithubActions.xcodeproj \
+            -scheme MyFeature \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone SE (3rd generation)" \
+            -only-testing:MyFeatureTests
       
       - name: Verify Test Bundle
         run: |
