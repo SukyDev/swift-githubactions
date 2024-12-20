@@ -13,7 +13,9 @@ import XCTest
 
 final class SimpleViewTests: XCTestCase {
     func testExample() throws {
+        #if canImport(UIKit)
         let view = MyFeature.SimpleView()
         SumerSnapshotTestCase().snapshotTest(view: view)
+        #endif
     }
 }
