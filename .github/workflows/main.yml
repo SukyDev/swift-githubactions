@@ -63,16 +63,34 @@ jobs:
         run: |
           xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings | grep -i "test"
 
-      # Run the snapshot tests using xcodebuild
-      - name: Run Snapshot Tests
+      # Build Test Target
+      - name: Build Test Target
         run: |
-          xcodebuild test \
-          -project GithubActions.xcodeproj \
-          -scheme MyFeature \
-          -destination 'platform=iOS Simulator,name=iPhone 13' \
-          -sdk iphonesimulator \
-          -only-testing:MyFeatureTests \
-          -verbose
+          xcodebuild build-for-testing \
+            -project GithubActions.xcodeproj \
+            -scheme MyFeature \
+            -destination 'platform=iOS Simulator,name=iPhone 13' \
+            -sdk iphonesimulator \
+            -configuration Debug
+
+      - name: Run Tests 
+        run: | 
+          xcodebuild test-without-building \ 
+            -project GithubActions.xcodeproj \ 
+            -scheme MyFeature \ 
+            -destination 'platform=iOS Simulator,name=iPhone 13' \ 
+            -configuration Debug
+
+      # Run the snapshot tests using xcodebuild
+      # - name: Run Snapshot Tests
+      #   run: |
+      #     xcodebuild test \
+      #     -project GithubActions.xcodeproj \
+      #     -scheme MyFeature \
+      #     -destination 'platform=iOS Simulator,name=iPhone 13' \
+      #     -sdk iphonesimulator \
+      #     -only-testing:MyFeatureTests \
+      #     -verbose
 
       - name: Check for existing snapshots in external repo
         env:
