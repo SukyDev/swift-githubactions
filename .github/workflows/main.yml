@@ -112,7 +112,29 @@ jobs:
           echo "Listing snapshot files in ReferenceImages directory:"
           ls -la snapshots_repo/ReferenceImages/
 
+      - name: Fetch Reference Snapshots
+        run: |
+          # Clone the snapshots repository
+          git clone https://github.com/SukyDev/GitStorageForSnapshots.git reference_snapshots
+          
+          # Create directory if it doesn't exist
+          mkdir -p ./sumer-ios/Tests/MyTestSupport/ReferenceImages
+          
+          # Copy existing reference images to the test directory
+          if [ -d "reference_snapshots/ReferenceImages" ]; then
+            cp -R reference_snapshots/ReferenceImages/* ./sumer-ios/Tests/MyTestSupport/ReferenceImages/
+          fi
+
+      - name: Run Snapshot Tests
+        run: |
+          xcodebuild test \
+            -scheme YourScheme \
+            -destination "platform=iOS Simulator,name=iPhone 13" \
+            -only-testing:MyFeatureTests \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
       - name: Record New Snapshot Images
+        if: success()
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
