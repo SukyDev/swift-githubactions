@@ -71,7 +71,6 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 13' \
             -sdk iphonesimulator \
             -configuration Debug \
-            -target MyFeatureTests \
             ONLY_ACTIVE_ARCH=YES \
             -verbose
       
