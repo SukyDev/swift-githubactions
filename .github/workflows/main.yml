@@ -63,14 +63,6 @@ jobs:
         run: |
           xcodebuild -project GithubActions.xcodeproj -scheme MyFeature -showBuildSettings | grep -i "test"
 
-      - name: Debug Build Products
-        run: |
-          echo "Checking build products directory..."
-          ls -R ~/Library/Developer/Xcode/DerivedData/
-          
-          echo "Looking for xctest bundles..."
-          find ~/Library/Developer/Xcode/DerivedData -name “*.xctest"
-
       - name: Build Test Target
         run: |
           xcodebuild build \
@@ -84,6 +76,7 @@ jobs:
             -verbose
       
       - name: Check Build Products After Build
+        if: always()
         run: |
           echo "=== BUILD PRODUCTS AFTER BUILD ==="
           find ~/Library/Developer/Xcode/DerivedData -type d -name "Build"
