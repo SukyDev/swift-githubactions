@@ -71,23 +71,23 @@ jobs:
           echo "Looking for xctest bundles..."
           find ~/Library/Developer/Xcode/DerivedData -name “*.xctest"
 
-      # Build Test Target
       - name: Build Test Target
         run: |
-          xcodebuild build-for-testing \
+          xcodebuild build \
             -project GithubActions.xcodeproj \
             -scheme MyFeature \
             -destination 'platform=iOS Simulator,name=iPhone 13' \
             -sdk iphonesimulator \
-            -configuration Debug
-
-      - name: Run Tests 
+            -configuration Debug \
+            -target MyFeatureTests \
+            ONLY_ACTIVE_ARCH=YES \
+            -verbose
+      
+      - name: Check Build Products After Build
         run: |
-          xcodebuild test-without-building \
-            -project GithubActions.xcodeproj \
-            -scheme MyFeature \
-            -destination 'platform=iOS Simulator,name=iPhone 13' \
-            -configuration Debug
+          echo "=== BUILD PRODUCTS AFTER BUILD ==="
+          find ~/Library/Developer/Xcode/DerivedData -type d -name "Build"
+          find ~/Library/Developer/Xcode/DerivedData -type f -name "*.xctest"
 
       # Run the snapshot tests using xcodebuild
       # - name: Run Snapshot Tests
