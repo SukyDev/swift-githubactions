@@ -92,10 +92,17 @@ jobs:
       #     -only-testing:MyFeatureTests \
       #     -verbose
 
+      jobs:
+  test:
+    runs-on: macos-latest
+    
+    steps:
+      # Step 1: Check for existing snapshots in external repo
       - name: Check for existing snapshots in external repo
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}  # GitHub PAT for repo access
           SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"  # External repository
+        id: check_for_existing_snapshots
         run: |
           # Clone the external repository
           git clone https://x-access-token:${REPO_TOKEN}@github.com/${SNAPSHOT_REPO}.git snapshots_repo
@@ -125,14 +132,56 @@ jobs:
           # Debug output: List the files that are considered as snapshots
           echo "Snapshot files excluding .gitkeep:"
           echo "$SNAPSHOT_FILES"
-  
+
+      # Step 2: Record New Snapshot Images (if no existing snapshots)
       - name: Record New Snapshot Images (if not exist)
         if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'false'
         run: |
           # Create a directory for snapshots if not already created
-          mkdir -p $PWD/ReferenceImages
-          # Copy the generated snapshots from the Xcode output to the snapshot directory
-          cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots $PWD/snapshots/
+          mkdir -p $PWD/snapshots/ReferenceImages
+          
+          # Example: Copy the generated snapshots from the Xcode output to the snapshot directory
+          cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots/*.png $PWD/snapshots/ReferenceImages/
+
+          # Add the new snapshots to the git repo
+          cd snapshots_repo
+          git add ReferenceImages/*.png
+          git commit -m "Add new snapshot images"
+          git push origin main  # Or your desired branch name
+
+      # Step 3: Compare New Snapshots with Existing Ones
+      - name: Compare New Snapshots with Existing Ones
+        if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'true'
+        run: |
+          # Compare the new snapshots with the existing snapshots in the external repo
+          NEW_SNAPSHOTS=$(ls ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots/*.png)
+          EXISTING_SNAPSHOTS=$(ls snapshots_repo/ReferenceImages/*.png)
+          
+          # For each new snapshot, check if it exists in the external repo
+          for NEW_SNAPSHOT in $NEW_SNAPSHOTS; do
+            SNAPSHOT_NAME=$(basename "$NEW_SNAPSHOT")
+            if ! grep -q "$SNAPSHOT_NAME" <<< "$EXISTING_SNAPSHOTS"; then
+              echo "New snapshot $SNAPSHOT_NAME doesn't exist in the external repo, adding it."
+              cp "$NEW_SNAPSHOT" snapshots_repo/ReferenceImages/
+              cd snapshots_repo
+              git add ReferenceImages/$SNAPSHOT_NAME
+              git commit -m "Add new snapshot $SNAPSHOT_NAME"
+              git push origin main  # Or your desired branch name
+            else
+              echo "Snapshot $SNAPSHOT_NAME already exists, comparing..."
+              # Use a tool or library to compare the images
+              # Example: `cmp` or other image comparison tools
+              cmp -s "$NEW_SNAPSHOT" "snapshots_repo/ReferenceImages/$SNAPSHOT_NAME" || {
+                echo "Snapshot $SNAPSHOT_NAME differs from the reference image. Updating..."
+                cp "$NEW_SNAPSHOT" snapshots_repo/ReferenceImages/
+                cd snapshots_repo
+                git add ReferenceImages/$SNAPSHOT_NAME
+                git commit -m "Update snapshot $SNAPSHOT_NAME"
+                git push origin main
+              }
+            fi
+          done
+
           
 
     #  - name: Build iOS application archive
