@@ -21,6 +21,11 @@ jobs:
       - name: Show build SDK
         run: xcodebuild -showsdks 
 
+      # Install Swift Package Manager dependencies (including SnapshotTesting)
+      - name: Install dependencies (SPM)
+        run: |
+          xcodebuild -resolvePackageDependencies
+
       - name: Install the Apple certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -47,38 +52,73 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
-      - name: Build iOS application archive
+      # Run the snapshot tests using xcodebuild
+      - name: Run Snapshot Tests
         run: |
-            cat $PWD/exportOptions.plist
-            xcodebuild clean -project GithubActions.xcodeproj -scheme GithubActions
-            xcodebuild archive -project GithubActions.xcodeproj -scheme GithubActions -archivePath $PWD/build/GithubActions.xcarchive INFOPLIST_FILE="$PWD/GithubActions/Info.plist"
-            xcodebuild -exportArchive -archivePath $PWD/build/GithubActions.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build
+          xcodebuild test -project GithubActions.xcodeproj -scheme GithubActions -destination 'platform=iOS Simulator,name=iPhone 14' -only-testing:SnapshotTests
 
-      - name: Decode App Store Connect private key file and save it
+
+      - name: Check for existing snapshots in external repo
         env:
-            API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
-            API_KEY: ${{ secrets.KEY_ID }}     
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}  # GitHub PAT for repo access
+          SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"  # External repository
         run: |
-            mkdir -p ~/private_keys
-            ls ~/private_keys
-            echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
-            echo "After saving: "
-            ls ~/private_keys
+          # Check if snapshot files exist in the external repository
+          git clone https://x-access-token:${REPO_TOKEN}@github.com/${SNAPSHOT_REPO}.git snapshots_repo
+          
+          # List files in the external snapshots repo
+          SNAPSHOT_FILES=$(ls snapshots_repo/ReferenceImages/)
 
-      - name: Check build directory before upload
-        run: |
-          echo "Contents of build directory:"
-          ls -lh $PWD/build
+          # Check if there are any existing snapshot images
+          if [ -z "$SNAPSHOT_FILES" ]; then
+            echo "No snapshots found, recording new snapshots."
+            echo "false" > $PWD/record_snapshots.txt
+          else
+            echo "Snapshots found, proceeding to comparison tests."
+            echo "true" > $PWD/record_snapshots.txt
+          fi
   
-      - name: Upload to App Store Connect
-        env:
-            ISSUER_ID: ${{ secrets.ISSUER_ID }}          
-            API_KEY: ${{ secrets.KEY_ID }}     
+      - name: Record New Snapshot Images (if not exist)
+        if: steps.check_for_existing_snapshots.outputs.record_snapshots == 'false'
         run: |
-            echo "Before uploading: "
-            ls ~/private_keys
-            xcrun altool --upload-app -f build/LFM-GHactions.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
-            ls ~/private_keys
+          # Create a directory for snapshots if not already created
+          mkdir -p $PWD/ReferenceImages
+          # Copy the generated snapshots from the Xcode output to the snapshot directory
+          cp -r ~/Library/Developer/Xcode/DerivedData/*/Build/Products/Debug-iphonesimulator/SnapshotTests/Snapshots $PWD/snapshots/
+          
+
+    #  - name: Build iOS application archive
+    #    run: |
+    #        cat $PWD/exportOptions.plist
+    #        xcodebuild clean -project GithubActions.xcodeproj -scheme GithubActions
+    #        xcodebuild archive -project GithubActions.xcodeproj -scheme GithubActions -archivePath $PWD/build/GithubActions.xcarchive INFOPLIST_FILE="$PWD/GithubActions/Info.plist"
+    #        xcodebuild -exportArchive -archivePath $PWD/build/GithubActions.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build
+#
+    #  - name: Decode App Store Connect private key file and save it
+    #    env:
+    #        API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+    #        API_KEY: ${{ secrets.KEY_ID }}     
+    #    run: |
+    #        mkdir -p ~/private_keys
+    #        ls ~/private_keys
+    #        echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
+    #        echo "After saving: "
+    #        ls ~/private_keys
+
+    #  - name: Check build directory before upload
+    #    run: |
+    #      echo "Contents of build directory:"
+    #      ls -lh $PWD/build
+  
+    #  - name: Upload to App Store Connect
+    #    env:
+    #        ISSUER_ID: ${{ secrets.ISSUER_ID }}          
+    #        API_KEY: ${{ secrets.KEY_ID }}     
+    #    run: |
+    #        echo "Before uploading: "
+    #        ls ~/private_keys
+    #        xcrun altool --upload-app -f build/LFM-GHactions.ipa -t ios --apiKey $API_KEY --apiIssuer "$ISSUER_ID"
+    #        ls ~/private_keys
   
       - name: Clean up keychain and provisioning profile
         if: ${{ always() }}
