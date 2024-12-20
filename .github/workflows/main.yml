@@ -114,25 +114,30 @@ jobs:
 
       - name: Record New Snapshot Images
         run: |
+          # Debug: Print current directory and list contents
+          echo "Current directory: $PWD"
+          ls -la
+          
+          # Try to find the MyTestSupport directory
+          echo "Searching for MyTestSupport directory..."
+          find . -type d -name "MyTestSupport"
+          
           # Create base directory structure in the snapshots repo
           mkdir -p snapshots_repo/ReferenceImages
       
-          # Find all snapshot test files to determine which views need folders
-          TEST_FILES=$(find . -path "*/MyFeatureTests/*.swift" -type f -name "*Tests.swift")
+          # Update the source directory path to include the package
+          SOURCE_DIR="./sumer-ios/Tests/MyTestSupport/ReferenceImages"
+          echo "Looking for source directory at: $SOURCE_DIR"
           
-          # Create view-specific folders based on test file names
-          for file in $TEST_FILES; do
-            VIEW_NAME=$(basename $file .swift | sed 's/Tests$//')
-            mkdir -p "snapshots_repo/ReferenceImages/$VIEW_NAME"
-          done
-      
-          # Find generated snapshot images from test runs
-          SOURCE_DIR="MyTestSupport/ReferenceImages"
           if [ -d "$SOURCE_DIR" ]; then
+            echo "Found source directory"
             for view_folder in "$SOURCE_DIR"/*/ ; do
               if [ -d "$view_folder" ]; then
                 VIEW_NAME=$(basename "$view_folder")
                 TARGET_DIR="snapshots_repo/ReferenceImages/$VIEW_NAME"
+                
+                # Create target directory if it doesn't exist
+                mkdir -p "$TARGET_DIR"
                 
                 # Copy only new files that don't exist in the target
                 for image in "$view_folder"*.png; do
@@ -148,6 +153,8 @@ jobs:
             done
           else
             echo "Warning: Source directory $SOURCE_DIR not found"
+            echo "Listing contents of ./sumer-ios/Tests directory:"
+            ls -la ./sumer-ios/Tests || echo "Tests directory not found"
             exit 0
           fi
       
