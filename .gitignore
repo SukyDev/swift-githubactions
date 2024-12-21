@@ -2,7 +2,7 @@
 .DS_Store
 
 # Ignore xcuserstate
-*.xcuserstate
+**/*.xcuserstate
 
 # Ignore node_modules directory
 node_modules/
