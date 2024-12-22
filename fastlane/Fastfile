@@ -5,7 +5,7 @@ platform :ios do
   lane :test do
     # Get absolute paths before changing directory
     project_dir = Dir.pwd
-    project_path = File.join(project_dir, "GithubActions.xcodeproj")
+    project_path = File.join(project_dir, "../GithubActions.xcodeproj")
     
     FileUtils.rm_rf("Tests/ReferenceImages")
     
