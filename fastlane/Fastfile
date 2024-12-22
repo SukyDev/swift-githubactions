@@ -24,7 +24,12 @@ platform :ios do
     # Copy reference images to the project's test directory
     FileUtils.mkdir_p("Tests/ReferenceImages")
     if Dir.exist?("snapshots_repo/ReferenceImages")
+      UI.message("Coping reference images...")
       FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/*"], "Tests/ReferenceImages/")
+    else
+      UI.message("No reference images found)
+      UI.message("Current directory structure:")
+      sh("ls -R snapshots_repo")
     end
 
     # Run tests

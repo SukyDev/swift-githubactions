@@ -8,6 +8,7 @@ on:
 
 env:
   SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"
+  REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
 
 jobs:
   test:
