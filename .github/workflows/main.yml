@@ -1,5 +1,3 @@
-New yaml with fastlane:
-
 name: iOS CI
 
 on:
