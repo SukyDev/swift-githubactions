@@ -8,7 +8,6 @@ on:
 
 env:
   SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"
-  REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
 
 jobs:
   test:
@@ -28,10 +27,8 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Install Fastlane
-        run: |
-          gem install fastlane
-          gem install xcpretty
+      - name: Install Dependencies
+        run: bundle install
 
       - name: Install certificates and profiles
         env:
@@ -58,10 +55,11 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Run Tests
+        env:
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
         run: |
-          echo "Setting up test environment..."
-          mkdir -p Tests/ReferenceImages
-          fastlane test
+          echo "Running tests with bundle exec..."
+          bundle exec fastlane test
 
       - name: Deploy to App Store
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
