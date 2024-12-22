@@ -4,9 +4,9 @@ name: iOS CI
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "vs/github-actions-with-fastlane" ]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [ "vs/github-actions-with-fastlane"]
 
 env:
   SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"
