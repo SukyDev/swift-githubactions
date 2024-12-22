@@ -5,53 +5,38 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    # Clean existing directories
+    # Clean existing directory
     FileUtils.rm_rf("Tests/ReferenceImages")
     
     # Clone snapshots repository
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
     
-    # Create the target directory
+    # Use Fastlane's UI for logging
+    UI.important("DEBUG: Current directory: #{Dir.pwd}")
+    UI.important("DEBUG: Full path to Tests/ReferenceImages: #{File.expand_path('Tests/ReferenceImages')}")
+    
     FileUtils.mkdir_p("Tests/ReferenceImages")
     
-    # Print directory contents for debugging
-    UI.message("Source directory structure:")
-    sh("ls -R snapshots_repo")
-    
     if Dir.exist?("snapshots_repo/ReferenceImages")
-      UI.message("Copying reference images...")
-      source_path = Pathname.new("snapshots_repo/ReferenceImages")
-      target_path = Pathname.new("Tests/ReferenceImages")
+      UI.message("Source directory:")
+      sh("ls -la snapshots_repo/ReferenceImages")
       
-      # Copy all contents including hidden files
-      Dir.glob("#{source_path}/**/*", File::FNM_DOTMATCH) do |file|
-        next if file =~ /\.\.?$/  # Skip . and .. directories
-        
-        relative_path = Pathname.new(file).relative_path_from(source_path)
-        target_file = target_path.join(relative_path)
-        
-        if File.directory?(file)
-          FileUtils.mkdir_p(target_file)
-        else
-          FileUtils.cp(file, target_file)
-        end
-      end
+      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "Tests/ReferenceImages/")
       
-      UI.message("Target directory structure:")
-      sh("ls -R Tests/ReferenceImages")
-    else
-      UI.user_error!("ReferenceImages directory not found in snapshots repository!")
+      UI.message("Destination directory after copy:")
+      sh("ls -la Tests/ReferenceImages")
+      
+      UI.important("DEBUG: Full find output:")
+      sh("find #{File.expand_path('Tests/ReferenceImages')} -type f -ls")
     end
 
-    # Run tests
     scan(
       scheme: "GithubActions",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
       derived_data_path: "DerivedData",
-      buildlog_path: "fastlane/logs",
-      output_directory: "fastlane/test_output"
+      buildlog_path: "fastlane/logs"
     )
   end
 end
