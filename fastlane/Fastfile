@@ -27,7 +27,7 @@ platform :ios do
       UI.message("Coping reference images...")
       FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/*"], "Tests/ReferenceImages/")
     else
-      UI.message("No reference images found)
+      UI.message("No reference images found")
       UI.message("Current directory structure:")
       sh("ls -R snapshots_repo")
     end

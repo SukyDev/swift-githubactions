@@ -58,7 +58,10 @@ jobs:
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: Run Tests
-        run: fastlane test
+        run: |
+          echo "Setting up test environment..."
+          mkdir -p Tests/ReferenceImages
+          fastlane test
 
       - name: Deploy to App Store
         if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
