@@ -11,9 +11,10 @@ import MyTestSupport
 import XCTest
 @testable import MyFeature
 
-final class NewViewTests: XCTestCase {
+final class NewViewTests: SumerSnapshotTestCase {
     func testExample() throws {
         let view = MyFeature.NewView()
-        SumerSnapshotTestCase().snapshotTest(view: view)
+        assertSnapshot(matching: view, as: .image)
+        snapshotTest(view: view)
     }
 }
