@@ -3,24 +3,27 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
+
+    root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
+
     # Correct path for sumer-ios module
-    FileUtils.rm_rf("../sumer-ios/Tests/ReferenceImages")
+    FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/ReferenceImages")
     
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
     
-    FileUtils.mkdir_p("../sumer-ios/Tests/ReferenceImages")
+    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
     
     if Dir.exist?("snapshots_repo/ReferenceImages")
-      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "../sumer-ios/Tests/ReferenceImages/")
+      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
     end
 
     scan(
-      project: "../GithubActions.xcodeproj",
+      project: "#{root_path}/GithubActions.xcodeproj",
       scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
-      derived_data_path: "../DerivedData"
+      derived_data_path: "#{root_path}/DerivedData"
     )
   end
 end
