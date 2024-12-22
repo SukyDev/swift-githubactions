@@ -30,13 +30,26 @@ platform :ios do
     end
 
     begin
+      UI.message("Starting test with full output logging...")
+      
       scan(
         scheme: "GithubActions",
         device: "iPhone SE (3rd generation)",
         clean: true,
         configuration: "Debug",
-        derived_data_path: "DerivedData"
+        derived_data_path: "DerivedData",
+        buildlog_path: "fastlane/logs",
+        output_directory: "fastlane/test_output",
+        include_simulator_logs: true,
+        output_types: "html,junit,json-compilation-database",
+        output_files: "report.html,report.junit,compile_commands.json",
+        xcodebuild_formatter: "xcpretty --color --simple"
       )
+
+      # Print test logs
+      UI.message("Test logs:")
+      sh("cat fastlane/logs/*.log") rescue UI.message("No log files found”)
+
 
       # Only update remote images if we're on main branch
       if ENV["GITHUB_REF"] == "refs/heads/main"
