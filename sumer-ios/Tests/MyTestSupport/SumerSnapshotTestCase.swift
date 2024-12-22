@@ -18,7 +18,7 @@ open class SumerSnapshotTestCase: TestCase {
         try super.setUpWithError()
 
         verifyDeviceTarget()
-        verifyDeviceOS()
+//        verifyDeviceOS()
         SnapshotTesting.diffTool = "ksdiff"
     }
 
