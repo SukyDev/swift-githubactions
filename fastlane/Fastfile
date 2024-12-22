@@ -3,16 +3,15 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    # Get absolute paths before changing directory
-    
-    FileUtils.rm_rf("Tests/ReferenceImages")
+    # Correct path for sumer-ios module
+    FileUtils.rm_rf("../sumer-ios/Tests/ReferenceImages")
     
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
     
-    FileUtils.mkdir_p("Tests/ReferenceImages")
+    FileUtils.mkdir_p("../sumer-ios/Tests/ReferenceImages")
     
     if Dir.exist?("snapshots_repo/ReferenceImages")
-      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "Tests/ReferenceImages/")
+      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "../sumer-ios/Tests/ReferenceImages/")
     end
 
     scan(
@@ -21,7 +20,7 @@ platform :ios do
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
-      derived_data_path: "DerivedData"
+      derived_data_path: "../DerivedData"
     )
   end
 end
