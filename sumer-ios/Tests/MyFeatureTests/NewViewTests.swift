@@ -13,10 +13,21 @@ import XCTest
 
 final class NewViewTests: SumerSnapshotTestCase {
     func testExample() throws {
-        NSLog("🔍 STARTING TEST: testExample")
         let view = MyFeature.NewView()
-        NSLog("📱 Created view: \(String(describing: view))")
-        NSLog("🏷️ Test name: \(#function)")
+
+        // Get the expected snapshot path
+        let fileUrl = URL(fileURLWithPath: #file)
+        let fileName = fileUrl.deletingPathExtension().lastPathComponent
+        let snapshotPath = "Tests/ReferenceImages/\(fileName)"
+
+        // Force a failure with the path information
+        XCTFail("""
+            DEBUG INFO:
+            Test file: \(#file)
+            Expected snapshot path: \(snapshotPath)
+            Does path exist: \(FileManager.default.fileExists(atPath: snapshotPath))
+            Current directory: \(FileManager.default.currentDirectoryPath)
+            """)
 
         assertSnapshot(
             matching: view,
