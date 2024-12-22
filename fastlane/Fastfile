@@ -17,8 +17,8 @@ platform :ios do
       end
 
       scan(
-        project: "./GithubActions.xcodeproj",  # Add this line
-        scheme: "GithubActions",
+        project: "GithubActions.xcodeproj",  # Add this line
+        scheme: "MyFeature",
         device: "iPhone SE (3rd generation)",
         clean: true,
         configuration: "Debug",
