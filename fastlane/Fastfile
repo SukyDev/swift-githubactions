@@ -1,0 +1,103 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Run tests including snapshots"
+  lane :test do
+    # Clone snapshots repository to get reference images
+    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
+    
+    # Copy reference images to the project's test directory
+    FileUtils.mkdir_p("Tests/__Snapshots__")
+    if Dir.exist?("snapshots_repo/__Snapshots__")
+      FileUtils.cp_r(Dir["snapshots_repo/__Snapshots__/*"], "Tests/__Snapshots__/")
+    end
+
+    # Run tests
+    begin
+      scan(
+        scheme: "GithubActions",
+        device: "iPhone 13",
+        clean: true,
+        configuration: "Debug",
+        build_for_testing: true,
+        derived_data_path: "DerivedData"
+      )
+      
+      scan(
+        scheme: "GithubActions",
+        device: "iPhone 13",
+        clean: false,
+        configuration: "Debug",
+        test_without_building: true,
+        derived_data_path: "DerivedData"
+      )
+
+      # If tests passed and we're on main, update reference images
+      if ENV["GITHUB_REF"] == "refs/heads/main"
+        FileUtils.rm_rf("snapshots_repo/__Snapshots__")
+        FileUtils.cp_r("Tests/__Snapshots__", "snapshots_repo/")
+        
+        Dir.chdir("snapshots_repo") do
+          sh("git config user.name 'GitHub Actions Bot'")
+          sh("git config user.email 'actions@github.com'")
+          sh("git add __Snapshots__")
+          status = sh("git status --porcelain", error_callback: ->(result) { puts result })
+          unless status.empty?
+            sh("git commit -m 'Update snapshot reference images [skip ci]'")
+            sh("git push")
+          end
+        end
+      end
+    rescue => ex
+      UI.error("Tests failed! If this is due to snapshot mismatches, check the test output for details.")
+      raise ex
+    end
+  end
+
+  desc "Deploy to App Store"
+  lane :release do
+    # Build the app
+    gym(
+      scheme: "GithubActions",
+      export_method: "app-store",
+      clean: true,
+      output_directory: "build",
+      export_options: {
+        provisioningProfiles: {
+          "com.ciCdTestingZesium.app" => "CiCdTestingProfile.mobileprovision"
+        }
+      }
+    )
+
+    # Set up App Store Connect API
+    app_store_connect_api_key(
+      key_id: ENV["API_KEY"],
+      issuer_id: ENV["ISSUER_ID"],
+      key_filepath: "~/private_keys/AuthKey_#{ENV['API_KEY']}.p8",
+      duration: 1200,
+      in_house: false
+    )
+
+    # Upload to App Store
+    upload_to_app_store(
+      skip_screenshots: true,
+      skip_metadata: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end
