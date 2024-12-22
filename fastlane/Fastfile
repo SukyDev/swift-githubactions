@@ -1,80 +1,55 @@
-default_platform(:ios)
+require 'pathname'
 
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    # First, remove any existing snapshots directory to ensure clean state
+    # Clean existing directories
     FileUtils.rm_rf("Tests/ReferenceImages")
     
-    # Clone snapshots repository to get reference images
+    # Clone snapshots repository
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
     
-    # Debug: Print the contents of the cloned repo
-    UI.message("Contents of snapshots repository:")
-    sh("ls -la snapshots_repo")
-    
-    # Ensure the ReferenceImages directory exists in the test directory
+    # Create the target directory
     FileUtils.mkdir_p("Tests/ReferenceImages")
     
-    # Copy ALL reference images from the remote repository
+    # Print directory contents for debugging
+    UI.message("Source directory structure:")
+    sh("ls -R snapshots_repo")
+    
     if Dir.exist?("snapshots_repo/ReferenceImages")
-      UI.message("Copying reference images from remote repository...")
-      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "Tests/ReferenceImages/")
-      # Debug: Print the copied files
-      UI.message("Copied reference images:")
-      sh("ls -la Tests/ReferenceImages")
-    else
-      UI.error("No ReferenceImages directory found in remote repository!")
-      UI.message("Repository structure:")
-      sh("ls -R snapshots_repo")
-    end
-
-    begin
-      UI.message("Starting test with full output logging...")
+      UI.message("Copying reference images...")
+      source_path = Pathname.new("snapshots_repo/ReferenceImages")
+      target_path = Pathname.new("Tests/ReferenceImages")
       
-      scan(
-        scheme: "GithubActions",
-        device: "iPhone SE (3rd generation)",
-        clean: true,
-        configuration: "Debug",
-        derived_data_path: "DerivedData",
-        buildlog_path: "fastlane/logs",
-        output_directory: "fastlane/test_output",
-        include_simulator_logs: true,
-        output_types: "html,junit,json-compilation-database",
-        output_files: "report.html,report.junit,compile_commands.json",
-        xcodebuild_formatter: "xcpretty --color --simple"
-      )
-
-      # Print test logs
-      UI.message("Test logs:")
-      sh("cat fastlane/logs/*.log") rescue UI.message("No log files found”)
-
-
-      # Only update remote images if we're on main branch
-      if ENV["GITHUB_REF"] == "refs/heads/main"
-        UI.message("Updating reference images in remote repository...")
-        FileUtils.rm_rf("snapshots_repo/ReferenceImages")
-        FileUtils.cp_r("Tests/ReferenceImages", "snapshots_repo/")
+      # Copy all contents including hidden files
+      Dir.glob("#{source_path}/**/*", File::FNM_DOTMATCH) do |file|
+        next if file =~ /\.\.?$/  # Skip . and .. directories
         
-        Dir.chdir("snapshots_repo") do
-          sh("git config user.name 'GitHub Actions Bot'")
-          sh("git config user.email 'actions@github.com'")
-          sh("git add ReferenceImages")
-          status = sh("git status --porcelain", error_callback: ->(result) { puts result })
-          unless status.empty?
-            sh("git commit -m 'Update snapshot reference images [skip ci]'")
-            sh("git push")
-          end
+        relative_path = Pathname.new(file).relative_path_from(source_path)
+        target_file = target_path.join(relative_path)
+        
+        if File.directory?(file)
+          FileUtils.mkdir_p(target_file)
+        else
+          FileUtils.cp(file, target_file)
         end
       end
-    rescue => ex
-      UI.error("Tests failed! Error: #{ex.message}")
-      UI.error("If this is due to snapshot mismatches, check the test output for details.")
-      raise ex
-    ensure
-      # Clean up local reference images after tests
-      FileUtils.rm_rf("Tests/ReferenceImages")
+      
+      UI.message("Target directory structure:")
+      sh("ls -R Tests/ReferenceImages")
+    else
+      UI.user_error!("ReferenceImages directory not found in snapshots repository!")
     end
+
+    # Run tests
+    scan(
+      scheme: "GithubActions",
+      device: "iPhone SE (3rd generation)",
+      clean: true,
+      configuration: "Debug",
+      derived_data_path: "DerivedData",
+      buildlog_path: "fastlane/logs",
+      output_directory: "fastlane/test_output"
+    )
   end
 end

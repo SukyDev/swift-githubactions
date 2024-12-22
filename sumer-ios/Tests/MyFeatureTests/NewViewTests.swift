@@ -15,23 +15,11 @@ final class NewViewTests: SumerSnapshotTestCase {
     func testExample() throws {
         let view = MyFeature.NewView()
 
-        // Get the expected snapshot path
-        let fileUrl = URL(fileURLWithPath: #file)
-        let fileName = fileUrl.deletingPathExtension().lastPathComponent
-        let snapshotPath = "Tests/ReferenceImages/\(fileName)"
-
-        // Force a failure with the path information
-        XCTFail("""
-            DEBUG INFO:
-            Test file: \(#file)
-            Expected snapshot path: \(snapshotPath)
-            Does path exist: \(FileManager.default.fileExists(atPath: snapshotPath))
-            Current directory: \(FileManager.default.currentDirectoryPath)
-            """)
-
+        // Use updated syntax
         assertSnapshot(
-            matching: view,
+            of: view,            // changed from 'matching' to 'of'
             as: .image,
+            named: "NewView",    // Add explicit name
             record: false,
             file: #file,
             testName: #function,
