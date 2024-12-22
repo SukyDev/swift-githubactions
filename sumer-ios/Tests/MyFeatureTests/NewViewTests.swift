@@ -19,7 +19,7 @@ final class NewViewTests: SumerSnapshotTestCase {
         assertSnapshot(
             of: view,            // changed from 'matching' to 'of'
             as: .image,
-            named: "Example-iPhoneSe.1",    // Add explicit name
+            named: "Example-iPhoneSE",    // Add explicit name
             record: false,
             file: #file,
             testName: #function,
