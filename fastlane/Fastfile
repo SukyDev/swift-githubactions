@@ -1,59 +1,46 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:ios)
 
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
+    # First, remove any existing snapshots directory to ensure clean state
+    FileUtils.rm_rf("Tests/ReferenceImages")
+    
     # Clone snapshots repository to get reference images
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
     
-    # Copy reference images to the project's test directory
+    # Debug: Print the contents of the cloned repo
+    UI.message("Contents of snapshots repository:")
+    sh("ls -la snapshots_repo")
+    
+    # Ensure the ReferenceImages directory exists in the test directory
     FileUtils.mkdir_p("Tests/ReferenceImages")
+    
+    # Copy ALL reference images from the remote repository
     if Dir.exist?("snapshots_repo/ReferenceImages")
-      UI.message("Coping reference images...")
-      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/*"], "Tests/ReferenceImages/")
+      UI.message("Copying reference images from remote repository...")
+      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "Tests/ReferenceImages/")
+      # Debug: Print the copied files
+      UI.message("Copied reference images:")
+      sh("ls -la Tests/ReferenceImages")
     else
-      UI.message("No reference images found")
-      UI.message("Current directory structure:")
+      UI.error("No ReferenceImages directory found in remote repository!")
+      UI.message("Repository structure:")
       sh("ls -R snapshots_repo")
     end
 
-    # Run tests
     begin
       scan(
         scheme: "GithubActions",
         device: "iPhone SE (3rd generation)",
         clean: true,
         configuration: "Debug",
-        build_for_testing: true,
-        derived_data_path: "DerivedData"
-      )
-      
-      scan(
-        scheme: "GithubActions",
-        device: "iPhone SE (3rd generation)",
-        clean: false,
-        configuration: "Debug",
-        test_without_building: true,
         derived_data_path: "DerivedData"
       )
 
-      # If tests passed and we're on main, update reference images
+      # Only update remote images if we're on main branch
       if ENV["GITHUB_REF"] == "refs/heads/main"
+        UI.message("Updating reference images in remote repository...")
         FileUtils.rm_rf("snapshots_repo/ReferenceImages")
         FileUtils.cp_r("Tests/ReferenceImages", "snapshots_repo/")
         
@@ -69,40 +56,12 @@ platform :ios do
         end
       end
     rescue => ex
-      UI.error("Tests failed! If this is due to snapshot mismatches, check the test output for details.")
+      UI.error("Tests failed! Error: #{ex.message}")
+      UI.error("If this is due to snapshot mismatches, check the test output for details.")
       raise ex
+    ensure
+      # Clean up local reference images after tests
+      FileUtils.rm_rf("Tests/ReferenceImages")
     end
-  end
-
-  desc "Deploy to App Store"
-  lane :release do
-    # Build the app
-    gym(
-      scheme: "GithubActions",
-      export_method: "app-store",
-      clean: true,
-      output_directory: "build",
-      export_options: {
-        provisioningProfiles: {
-          "com.ciCdTestingZesium.app" => "CiCdTestingProfile.mobileprovision"
-        }
-      }
-    )
-
-    # Set up App Store Connect API
-    app_store_connect_api_key(
-      key_id: ENV["API_KEY"],
-      issuer_id: ENV["ISSUER_ID"],
-      key_filepath: "~/private_keys/AuthKey_#{ENV['API_KEY']}.p8",
-      duration: 1200,
-      in_house: false
-    )
-
-    # Upload to App Store
-    upload_to_app_store(
-      skip_screenshots: true,
-      skip_metadata: true,
-      precheck_include_in_app_purchases: false
-    )
   end
 end
