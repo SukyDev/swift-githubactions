@@ -15,10 +15,6 @@ final class NewViewTests: SumerSnapshotTestCase {
     func testExample() throws {
         let view = MyFeature.NewView()
 
-        // Use updated syntax
-        assertSnapshot(
-            of: view,            // changed from 'matching' to 'of'
-            as: .image
-        )
+        snapshotTest(view: view)
     }
 }
