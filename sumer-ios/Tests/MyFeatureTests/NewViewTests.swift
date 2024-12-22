@@ -14,7 +14,20 @@ import XCTest
 final class NewViewTests: SumerSnapshotTestCase {
     func testExample() throws {
         let view = MyFeature.NewView()
-        assertSnapshot(matching: view, as: .image)
+
+        print("Current directory: \(FileManager.default.currentDirectoryPath)")
+        if let filePath = #file.split(separator: "/").last {
+            print("Test file: \(filePath)")
+        }
+
+        // Add debug prints
+        assertSnapshot(matching: view,
+                       as: .image,
+                       named: "NewView",
+                       record: false,
+                       file: #file,
+                       testName: #function,
+                       line: #line)
         snapshotTest(view: view)
     }
 }
