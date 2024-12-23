@@ -4,13 +4,19 @@ platform :ios do
   desc "Run tests including snapshots"
   lane :test do
     root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
+    test_output_path = "#{root_path}/fastlane/test_output"
+    xcresult_path = "#{test_output_path}/MyFeature.xcresult"
 
     # Print current path and contents before doing anything
     puts "Current directory: #{Dir.pwd}"
     sh("ls -R #{root_path}/sumer-ios/Tests")
 
     # Create test output directory
-    FileUtils.mkdir_p("#{root_path}/fastlane/test_output")
+    FileUtils.mkdir_p(test_output_path)
+
+    # Print directory structure before tests
+    puts "Test output directory created at: #{test_output_path}"
+    sh("ls -la #{test_output_path}")
 
     # Cleanup old reference images
     FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
@@ -42,7 +48,8 @@ platform :ios do
       output_style: 'raw',
       output_types: 'raw,html,junit',
       result_bundle: true,
-      buildlog_path: "#{root_path}/fastlane/test_output",
+      result_bundle_path: xcresult_path,
+      buildlog_path: test_output_path,
       include_simulator_logs: true,
       xcargs: "CI=true ENABLE_TESTABILITY=YES ONLY_ACTIVE_ARCH=YES"
     )
