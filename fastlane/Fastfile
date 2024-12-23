@@ -37,21 +37,33 @@ platform :ios do
       sh("ls -R #{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")
     end
 
-    # Rest of your scan configuration...
-    scan(
-      package_path: "#{root_path}/sumer-ios",
-      scheme: "MyFeature",
-      device: "iPhone SE (3rd generation)",
-      clean: true,
-      configuration: "Debug",
-      derived_data_path: "#{root_path}/DerivedData",
-      output_style: 'raw',
-      output_types: 'raw,html,junit',
-      result_bundle: true,
-      result_bundle_path: xcresult_path,
-      buildlog_path: test_output_path,
-      include_simulator_logs: true,
-      xcargs: "CI=true ENABLE_TESTABILITY=YES ONLY_ACTIVE_ARCH=YES"
-    )
+    # Define devices to test
+    devices = [
+      "iPhone SE (3rd generation)",
+      "iPhone 13",
+      "iPhone 13 Pro Max"
+    ]
+
+    devices.each do |device|
+      device_name = device.downcase.gsub(" ", "_").gsub("(", "").gsub(")", "")
+      xcresult_path = "#{test_output_path}/MyFeature_#{device_name}.xcresult"
+
+      # Rest of your scan configuration...
+      scan(
+        package_path: "#{root_path}/sumer-ios",
+        scheme: "MyFeature",
+        device: device,
+        clean: true,
+        configuration: "Debug",
+        derived_data_path: "#{root_path}/DerivedData",
+        output_style: 'raw',
+        output_types: 'raw,html,junit',
+        result_bundle: true,
+        result_bundle_path: xcresult_path,
+        buildlog_path: test_output_path,
+        include_simulator_logs: true,
+        xcargs: "CI=true ENABLE_TESTABILITY=YES ONLY_ACTIVE_ARCH=YES"
+      )
+    end
   end
 end
