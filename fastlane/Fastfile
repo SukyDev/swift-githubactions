@@ -70,7 +70,7 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
-      # First, we need to properly handle the base64 API key
+      # First, properly handle the base64 API key
       api_key_path = File.join(Dir.pwd, "AuthKey.p8")
       File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
       
@@ -78,7 +78,7 @@ platform :ios do
         app_store_connect_api_key(
           key_id: ENV["API_KEY"],
           issuer_id: ENV["ISSUER_ID"],
-          key_filepath: api_key_path  # Use file path instead of content
+          key_filepath: api_key_path
         )
   
         current_build = latest_testflight_build_number(
@@ -108,6 +108,12 @@ platform :ios do
           output_name: "LFM-GHactions.ipa",
           include_bitcode: false,
           include_symbols: false,
+          xcconfig: {
+            "EXCLUDED_SOURCE_FILE_NAMES" => "*Tests.swift",
+            "ENABLE_TESTABILITY" => "NO",
+            "GCC_PREPROCESSOR_DEFINITIONS" => "RELEASE=1"
+          },
+          xcargs: "-skipPackagePluginValidation",
           export_options: {
             provisioningProfiles: {
               "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
