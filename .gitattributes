@@ -7,8 +7,21 @@
 # Swift specific
 *.pbxproj merge= union
 *.swift text diff=swift
+*.h text diff=objc
+*.m text diff=objc
 
 # Xcode
 *.xcscheme binary
 *.xcworkspace binary
 *.xcuserstate binary
+
+# Handle line endings automatically for files detected as text
+* text=auto
+
+# Image files
+*.png binary diff=exif
+*.jpg binary diff=exif
+
+
+# Test output
+**/test_output/** binary

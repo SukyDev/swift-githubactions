@@ -57,7 +57,9 @@ jobs:
       - name: Run Tests
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          CI: true # This will force scale to 1.0 in CI
         run: |
+          echo "CI environment variable: $CI"
           echo "Running tests with bundle exec..."
           bundle exec fastlane test
 

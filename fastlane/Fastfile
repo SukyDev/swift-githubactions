@@ -3,20 +3,46 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-
     root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
 
-    # Correct path for sumer-ios module
+    # Cleanup old reference images
     FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/ReferenceImages")
+    puts "✓ Cleaned up old reference images"
     
-    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
+    # Clone snapshot repository
+    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
+    puts "✓ Cloned snapshot repository"
     
+    # Create directory for reference images
     FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
+    puts "✓ Created ReferenceImages directory"
     
-    if Dir.exist?("snapshots_repo/ReferenceImages")
-      FileUtils.cp_r(Dir["snapshots_repo/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
+    # Verify repository contents
+    puts "Checking GitStorageForSnapshots contents:"
+    sh("ls -la GitStorageForSnapshots")
+    
+    # Copy and verify reference images
+    if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
+      puts "Found ReferenceImages directory in GitStorageForSnapshots"
+      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
+      
+      # Verify copied files
+      puts "Files in destination directory:"
+      sh("ls -la #{root_path}/sumer-ios/Tests/ReferenceImages")
+      
+      # Print total count of PNG files
+      puts "Total reference images:"
+      sh("find #{root_path}/sumer-ios/Tests/ReferenceImages -name '*.png' | wc -l")
+    else
+      puts "⚠️ No ReferenceImages directory found in GitStorageForSnapshots"
     end
 
+    # Verify environment variables
+    puts "Environment variables:"
+    puts "CI: #{ENV['CI']}"
+    puts "SNAPSHOT_REPO: #{ENV['SNAPSHOT_REPO']}"
+
+    # Run tests with verbose output
     scan(
       project: "#{root_path}/GithubActions.xcodeproj",
       scheme: "GithubActions",
@@ -24,7 +50,11 @@ platform :ios do
       clean: true,
       configuration: "Debug",
       derived_data_path: "#{root_path}/DerivedData",
-      xcargs: "SNAPSHOT_REFERENCE_SCALE=$(SNAPSHOT_REFERENCE_SCALE)"
+      output_style: 'raw',
+      output_types: 'raw,html,junit',
+      result_bundle: true,
+      buildlog_path: "#{root_path}/fastlane/test_output",
+      include_simulator_logs: true
     )
   end
 end
