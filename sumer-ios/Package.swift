@@ -42,10 +42,7 @@ let package = Package(
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "Xcore", package: "Xcore")
             ],
-            path: "Tests/MyTestSupport",
-            exclude: [
-                "ReferenceImages"
-            ]
+            path: "Tests/MyTestSupport"
         ),
         .testTarget(
             name: "MyFeatureTests",

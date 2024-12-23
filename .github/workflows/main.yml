@@ -60,6 +60,8 @@ jobs:
           CI: true # This will force scale to 1.0 in CI
         run: |
           echo "CI environment variable: $CI"
+          # Force SPM to resolve packages first
+          swift package resolve
           echo "Running tests with bundle exec..."
           bundle exec fastlane test
 
