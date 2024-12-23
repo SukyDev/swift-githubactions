@@ -32,7 +32,7 @@ let package = Package(
         .target(
             name: "MyFeature",
             dependencies: [
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+//                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "Xcore", package: "xcore")  // Ensure this is needed
             ]
         ),

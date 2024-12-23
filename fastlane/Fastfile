@@ -113,7 +113,7 @@ platform :ios do
             "ENABLE_TESTABILITY" => "NO",
             "GCC_PREPROCESSOR_DEFINITIONS" => "RELEASE=1"
           },
-          xcargs: "-skipPackagePluginValidation",
+          xcargs: "ENABLE_TESTING=NO",
           export_options: {
             provisioningProfiles: {
               "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
