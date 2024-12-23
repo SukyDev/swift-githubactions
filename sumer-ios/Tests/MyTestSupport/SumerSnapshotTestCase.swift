@@ -77,12 +77,18 @@ open class SumerSnapshotTestCase: TestCase {
         let vc = hostingVc ?? UIHostingController(rootView: rootView)
         hostingVc = vc
 
+        let scale: CGFloat = UIScreen.main.scale
+
         devices.forEach { device in
+            // Scale the size based on the device's scale factor
+            let baseSize = device.config.size ?? CGSize(width: 375, height: 667)
+            let scale: CGFloat = ProcessInfo.processInfo.environment["CI"] != nil ? 1.0 : UIScreen.main.scale
+
             let snapshot: Snapshotting<UIViewController, UIImage>
 
             let size: CGSize = .init(
-                width: device.config.size?.width ?? 375,
-                height: height ?? device.config.size?.height ?? 667
+                width: baseSize.width * scale,
+                height: height != nil ? height! * scale : baseSize.height * scale
             )
 
             ObservableLayout.shared.layoutSource = device.layoutSource

@@ -23,7 +23,8 @@ platform :ios do
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
-      derived_data_path: "#{root_path}/DerivedData"
+      derived_data_path: "#{root_path}/DerivedData",
+      xcargs: "SNAPSHOT_REFERENCE_SCALE=$(SNAPSHOT_REFERENCE_SCALE)"
     )
   end
 end

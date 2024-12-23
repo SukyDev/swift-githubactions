@@ -1,1 +1,14 @@
-sumer-ios/Tests/MyTestSupport/ReferenceImages/**/*.png filter=lfs diff=lfs merge=lfs -text
+# Snapshot testing
+*.png binary diff=exif
+**/ReferenceImages/** binary
+**/FailureDiffs/** binary
+
+
+# Swift specific
+*.pbxproj merge= union
+*.swift text diff=swift
+
+# Xcode
+*.xcscheme binary
+*.xcworkspace binary
+*.xcuserstate binary
