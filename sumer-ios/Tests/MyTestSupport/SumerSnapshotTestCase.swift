@@ -228,7 +228,8 @@ extension SumerSnapshotTestCase {
     private func snapshotDirectory(_ testFilePath: String) -> String {
         let testLastComponent = URL(fileURLWithPath: testFilePath).lastPathComponent
         let folderName = testLastComponent.replacingOccurrences(of: "Tests.swift", with: "")
-        return "Tests/ReferenceImages/\(folderName)"
+        let currentLastComponent = URL(fileURLWithPath: #filePath).lastPathComponent
+        return #filePath.replacingOccurrences(of: currentLastComponent, with: "ReferenceImages/\(folderName)")
     }
 
     private func normalize(_ testName: String) -> String {
