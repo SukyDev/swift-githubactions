@@ -5,44 +5,52 @@ platform :ios do
   lane :test do
     root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
 
+    # Print working directory and its contents
+    puts "\n📁 Current working directory:"
+    sh("pwd")
+    puts "\n📁 Contents of working directory:"
+    sh("ls -la")
+
     # Cleanup old reference images
     FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/ReferenceImages")
-    puts "✓ Cleaned up old reference images"
+    puts "\n🗑️ Cleaned up old reference images"
     
-    # Clone snapshot repository
-    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
-    puts "✓ Cloned snapshot repository"
+    # Clone snapshot repository with verbose output
+    puts "\n📥 Cloning snapshot repository..."
+    sh("git clone --verbose https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
     
-    # Create directory for reference images
-    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
-    puts "✓ Created ReferenceImages directory"
-    
-    # Verify repository contents
-    puts "Checking GitStorageForSnapshots contents:"
+    # Verify cloned repository
+    puts "\n📁 GitStorageForSnapshots contents:"
     sh("ls -la GitStorageForSnapshots")
+    puts "\n📁 GitStorageForSnapshots/ReferenceImages contents:"
+    sh("ls -la GitStorageForSnapshots/ReferenceImages") rescue puts "⚠️ ReferenceImages directory not found"
     
-    # Copy and verify reference images
+    # Create and verify reference images directory
+    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
+    puts "\n📁 Destination directory structure:"
+    sh("ls -la #{root_path}/sumer-ios/Tests")
+    
+    # Copy reference images with verbose output
     if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
-      puts "Found ReferenceImages directory in GitStorageForSnapshots"
-      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
+      puts "\n📋 Copying reference images..."
+      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/", verbose: true)
       
-      # Verify copied files
-      puts "Files in destination directory:"
-      sh("ls -la #{root_path}/sumer-ios/Tests/ReferenceImages")
+      puts "\n📁 Final ReferenceImages contents:"
+      sh("ls -R #{root_path}/sumer-ios/Tests/ReferenceImages")
       
-      # Print total count of PNG files
-      puts "Total reference images:"
+      puts "\n🔢 Total reference images:"
       sh("find #{root_path}/sumer-ios/Tests/ReferenceImages -name '*.png' | wc -l")
     else
-      puts "⚠️ No ReferenceImages directory found in GitStorageForSnapshots"
+      puts "\n⚠️ No ReferenceImages directory found in GitStorageForSnapshots"
     end
 
     # Verify environment variables
-    puts "Environment variables:"
+    puts "\n🔧 Environment variables:"
     puts "CI: #{ENV['CI']}"
     puts "SNAPSHOT_REPO: #{ENV['SNAPSHOT_REPO']}"
+    puts "REPO_TOKEN present: #{!ENV['REPO_TOKEN'].nil? && !ENV['REPO_TOKEN'].empty?}"
 
-    # Run tests with verbose output
+    # Run tests with detailed output
     scan(
       project: "#{root_path}/GithubActions.xcodeproj",
       scheme: "GithubActions",
@@ -54,7 +62,9 @@ platform :ios do
       output_types: 'raw,html,junit',
       result_bundle: true,
       buildlog_path: "#{root_path}/fastlane/test_output",
-      include_simulator_logs: true
+      include_simulator_logs: true,
+      # Add test-specific environment variables
+      xcargs: "CI=true"
     )
   end
 end
