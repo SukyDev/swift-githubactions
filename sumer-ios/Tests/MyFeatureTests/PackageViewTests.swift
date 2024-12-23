@@ -10,9 +10,9 @@ import MyTestSupport
 import XCTest
 @testable import MyFeature
 
-final class PackageViewTests: XCTestCase {
+final class PackageViewTests: SumerSnapshotTestCase {
     func testExample() throws {
         let view = MyFeature.PackageView()
-        SumerSnapshotTestCase().snapshotTest(view: view)
+        snapshotTest(view: view)
     }
 }
