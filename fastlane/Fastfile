@@ -9,6 +9,9 @@ platform :ios do
     puts "Current directory: #{Dir.pwd}"
     sh("ls -R #{root_path}/sumer-ios/Tests")
 
+    # Create test output directory
+    FileUtils.mkdir_p("#{root_path}/fastlane/test_output)
+
     # Cleanup old reference images
     FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
     
