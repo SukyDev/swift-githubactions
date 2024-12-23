@@ -70,11 +70,15 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
+
+      api_key_path = File.join(Dir.pwd, "AuthKey.p8")
+      File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+
       # Set up App Store Connect API
       app_store_connect_api_key(
         key_id: ENV["API_KEY"],
         issuer_id: ENV["ISSUER_ID"],
-        key_content: ENV["API_KEY_BASE64"]
+        key_filepath: api_key_path
       )
   
       current_build = latest_testflight_build_number(
@@ -113,6 +117,9 @@ platform :ios do
         ipa: "build/LFM-GHactions.ipa",
         api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
       )
+      ensure
+        # Clean up the key file
+        File.delete(api_key_path) if File.exist?(api_key_path)
     end
   end
 end
