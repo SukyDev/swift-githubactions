@@ -3,55 +3,48 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    # Change to project root directory first
-    project_root = File.expand_path("../../swift-githubactions", __dir__)  # Go up twice from fastlane directory
-    puts "\n📁 Changing to project root: #{project_root}"
+    project_root = File.expand_path("../../swift-githubactions", __dir__)
     Dir.chdir(project_root)
     
-    puts "\n📁 Current working directory:"
-    sh("pwd")
-    puts "\n📁 Contents of working directory:"
-    sh("ls -la")
-
+    # Clear derived data to ensure clean state
+    FileUtils.rm_rf("DerivedData")
+    
     # Cleanup old reference images
     FileUtils.rm_rf("sumer-ios/Tests/ReferenceImages")
-    puts "\n🗑️ Cleaned up old reference images"
     
-    # Clone snapshot repository with verbose output
-    puts "\n📥 Cloning snapshot repository..."
+    # Clone and copy reference images
     sh("git clone --verbose https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
-    
-    # Verify cloned repository
-    puts "\n📁 GitStorageForSnapshots contents:"
-    sh("ls -la GitStorageForSnapshots")
-    puts "\n📁 GitStorageForSnapshots/ReferenceImages contents:"
-    sh("ls -la GitStorageForSnapshots/ReferenceImages") rescue puts "⚠️ ReferenceImages directory not found"
-    
-    # Create and verify reference images directory
     FileUtils.mkdir_p("sumer-ios/Tests/ReferenceImages")
-    puts "\n📁 Destination directory structure:"
-    sh("ls -la sumer-ios/Tests")
     
-    # Copy reference images with verbose output
     if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
-      puts "\n📋 Copying reference images..."
       FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "sumer-ios/Tests/ReferenceImages/", verbose: true)
-      
-      puts "\n📁 Final ReferenceImages contents:"
-      sh("ls -R sumer-ios/Tests/ReferenceImages")
-      
-      puts "\n🔢 Total reference images:"
-      sh("find sumer-ios/Tests/ReferenceImages -name '*.png' | wc -l")
-    else
-      puts "\n⚠️ No ReferenceImages directory found in GitStorageForSnapshots"
     end
 
-    # Run tests with detailed output
-     scan(
+    # Run tests with SPM dependencies resolved first
+    scan(
       project: "#{Dir.pwd}/GithubActions.xcodeproj",
       scheme: "GithubActions",
       device: "iPhone SE (3rd generation)",
       clean: true,
+      build_for_testing: true,
+      configuration: "Debug",
+      derived_data_path: "DerivedData",
+      output_style: 'raw',
+      xcargs: [
+        "CI=true",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "-resolvePackageDependencies",
+        "OTHER_SWIFT_FLAGS='-D SNAPSHOT_TEST'"
+      ].join(" ")
+    )
+
+    # Now run the actual tests
+    scan(
+      project: "#{Dir.pwd}/GithubActions.xcodeproj",
+      scheme: "GithubActions",
+      device: "iPhone SE (3rd generation)",
+      clean: false,  # Don't clean between runs
       configuration: "Debug",
       derived_data_path: "DerivedData",
       output_style: 'raw',
@@ -61,9 +54,8 @@ platform :ios do
       include_simulator_logs: true,
       xcargs: [
         "CI=true",
-        "SIMULATOR_DEVICE_NAME='iPhone SE (3rd generation)'",
-        "SIMULATOR_RUNTIME_VERSION='18.1'",
-        "SIMULATOR_PLATFORM_NAME='iOS'"
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES"
       ].join(" ")
     )
   end
