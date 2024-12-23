@@ -37,7 +37,7 @@ platform :ios do
     # Run tests
     scan(
       project: "#{Dir.pwd}/GithubActions.xcodeproj",
-      scheme: "GithubActions",
+      scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
