@@ -70,53 +70,62 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
-      app_store_connect_api_key(
-        key_id: ENV["API_KEY"],
-        issuer_id: ENV["ISSUER_ID"],
-        key_content: ENV["API_KEY_BASE64"]
-      )
+      # First, we need to properly handle the base64 API key
+      api_key_path = File.join(Dir.pwd, "AuthKey.p8")
+      File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+      
+      begin
+        app_store_connect_api_key(
+          key_id: ENV["API_KEY"],
+          issuer_id: ENV["ISSUER_ID"],
+          key_filepath: api_key_path  # Use file path instead of content
+        )
   
-      current_build = latest_testflight_build_number(
-        api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
-        app_identifier: "com.ciCdTestingZesium.app"
-      )
-      
-      new_build_number = current_build + 1
-      puts "Current TestFlight build: #{current_build}"
-      puts "New build number will be: #{new_build_number}"
-      
-      increment_build_number(
-        build_number: new_build_number,
-        xcodeproj: "GithubActions.xcodeproj"
-      )
-      
-      build_ios_app(
-        project: "GithubActions.xcodeproj",
-        scheme: "GithubActions",
-        configuration: "Release",  # Make sure to use Release configuration
-        export_method: "app-store",
-        clean: true,
-        skip_profile_detection: true,
-        build_path: "build",
-        archive_path: "build/archive",
-        output_directory: "build",
-        output_name: "LFM-GHactions.ipa",
-        include_bitcode: false,
-        include_symbols: false,
-        export_options: {
-          provisioningProfiles: {
-            "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
-          },
-          signingCertificate: ENV["BUILD_CERTIFICATE_BASE64"],
-          signingStyle: "manual"
-        }
-      )
-      
-      upload_to_testflight(
-        skip_waiting_for_build_processing: true,
-        ipa: "build/LFM-GHactions.ipa",
-        api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
-      )
+        current_build = latest_testflight_build_number(
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
+          app_identifier: "com.ciCdTestingZesium.app"
+        )
+        
+        new_build_number = current_build + 1
+        puts "Current TestFlight build: #{current_build}"
+        puts "New build number will be: #{new_build_number}"
+        
+        increment_build_number(
+          build_number: new_build_number,
+          xcodeproj: "GithubActions.xcodeproj"
+        )
+        
+        build_ios_app(
+          project: "GithubActions.xcodeproj",
+          scheme: "GithubActions",
+          configuration: "Release",
+          export_method: "app-store",
+          clean: true,
+          skip_profile_detection: true,
+          build_path: "build",
+          archive_path: "build/archive",
+          output_directory: "build",
+          output_name: "LFM-GHactions.ipa",
+          include_bitcode: false,
+          include_symbols: false,
+          export_options: {
+            provisioningProfiles: {
+              "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
+            },
+            signingCertificate: ENV["BUILD_CERTIFICATE_BASE64"],
+            signingStyle: "manual"
+          }
+        )
+        
+        upload_to_testflight(
+          skip_waiting_for_build_processing: true,
+          ipa: "build/LFM-GHactions.ipa",
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+        )
+      ensure
+        # Clean up the key file
+        File.delete(api_key_path) if File.exist?(api_key_path)
+      end
     end
   end
 end
