@@ -54,15 +54,31 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
 
+      - name: Swift Package Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            .build
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+            ~/.build/checkouts
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+        
+      - name: Clean SPM cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          rm -rf ~/.build/checkouts
+          rm -rf ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          rm -rf .build
+        
       - name: Run Tests
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-          CI: true # This will force scale to 1.0 in CI
+          CI: true
         run: |
-          echo "CI environment variable: $CI"
           # Force SPM to resolve packages first
           swift package resolve
-          echo "Running tests with bundle exec..."
           bundle exec fastlane test
 
       - name: Deploy to App Store
