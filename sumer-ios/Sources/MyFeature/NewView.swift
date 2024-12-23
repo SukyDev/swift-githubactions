@@ -6,7 +6,7 @@ public struct NewView: View {
 
     public var body: some View {
         VStack {
-            Text("NewView New Version Test Snapshots!")
+            Text("NewView New Version Test Upload to app store!")
         }
         .padding()
     }
