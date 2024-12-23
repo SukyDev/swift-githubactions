@@ -45,7 +45,7 @@ platform :ios do
     
     # Run tests
     scan(
-      package-path: "#{Dir.pwd}/sumer-ios",
+      package_path: "#{Dir.pwd}/sumer-ios",
       scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
