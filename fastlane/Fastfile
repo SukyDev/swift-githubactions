@@ -33,10 +33,19 @@ platform :ios do
 
     # Set environment variable before running tests
     ENV["SNAPSHOT_ARTIFACTS"] = "#{Dir.pwd}/fastlane/test_output/snapshots"
+
+    # List available schemes
+    sh("xcodebuild -list -json") rescue put "Failed to list schemes"
+
+    # Try to find and share the scheme
+    sh("xcodebuild -scheme MyFeature -showBuildSettings") rescue begin
+	puts "Attempting to share scheme..."
+	sh("ruby -e 'require \"xcodeproj\"; Xcodeproj::Project.open(\"sumer-ios/Package.swift\".recreate_user_schemes'")
+    end
     
     # Run tests
     scan(
-      project: "#{Dir.pwd}/GithubActions.xcodeproj",
+      project: "#{Dir.pwd}/sumer-ios",
       scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
