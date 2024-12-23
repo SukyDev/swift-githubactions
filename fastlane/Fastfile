@@ -47,7 +47,7 @@ platform :ios do
     end
 
     # Run tests with detailed output
-    scan(
+     scan(
       project: "#{Dir.pwd}/GithubActions.xcodeproj",
       scheme: "GithubActions",
       device: "iPhone SE (3rd generation)",
@@ -59,7 +59,12 @@ platform :ios do
       result_bundle: true,
       buildlog_path: "fastlane/test_output",
       include_simulator_logs: true,
-      xcargs: "CI=true"
+      xcargs: [
+        "CI=true",
+        "SIMULATOR_DEVICE_NAME='iPhone SE (3rd generation)'",
+        "SIMULATOR_RUNTIME_VERSION='18.1'",
+        "SIMULATOR_PLATFORM_NAME='iOS'"
+      ].join(" ")
     )
   end
 end
