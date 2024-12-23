@@ -4,7 +4,7 @@ platform :ios do
   desc "Run tests including snapshots"
   lane :test do
     # Change to project root directory first
-    project_root = File.expand_path("../..", __dir__)  # Go up twice from fastlane directory
+    project_root = File.expand_path("../../swift-githubactions", __dir__)  # Go up twice from fastlane directory
     puts "\n📁 Changing to project root: #{project_root}"
     Dir.chdir(project_root)
     
