@@ -19,6 +19,10 @@ let package = Package(
         .package(
             url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
             .exactItem("1.17.5")
+        ),
+        .package(
+            url: "https://github.com/luismachado/xcore",
+            .upToNextMajor(from: "1.0.1")
         )
     ],
     
@@ -26,12 +30,16 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "MyFeature"
+            name: "MyFeature",
+            dependencies: [
+                            .product(name: "Xcore", package: "Xcore")  // Ensure this is needed
+                        ]
         ),
         .target(
             name: "MyTestSupport",
             dependencies: [
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "Xcore", package: "Xcore")
             ],
             path: "Tests/MyTestSupport",
             exclude: [

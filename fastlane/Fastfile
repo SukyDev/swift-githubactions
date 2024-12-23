@@ -19,7 +19,7 @@ platform :ios do
 
     scan(
       project: "#{root_path}/GithubActions.xcodeproj",
-      scheme: "MyFeature",
+      scheme: "GithubActions",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",

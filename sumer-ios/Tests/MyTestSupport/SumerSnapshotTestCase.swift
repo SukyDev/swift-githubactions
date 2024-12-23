@@ -8,6 +8,7 @@
 import Foundation
 import SnapshotTesting
 import SwiftUI
+import Xcore
 import XCTest
 
 open class SumerSnapshotTestCase: TestCase {
@@ -69,6 +70,9 @@ open class SumerSnapshotTestCase: TestCase {
     ) {
 
         let rootView = view
+            .applyIf(embedInNavigation) {
+                $0.embedInStackedNavigation()
+            }
 
         let vc = hostingVc ?? UIHostingController(rootView: rootView)
         hostingVc = vc
