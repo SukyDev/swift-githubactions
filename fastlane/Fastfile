@@ -17,6 +17,11 @@ platform :ios do
     
     if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
       FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "sumer-ios/Tests/ReferenceImages/", verbose: true)
+      
+      # Set permissions and verify files
+      sh("chmod -R 755 sumer-ios/Tests/ReferenceImages")
+      puts "\n📸 Reference Images:"
+      sh("ls -la sumer-ios/Tests/ReferenceImages/*/*.png") rescue puts "No PNG files found"
     end
 
     # Create and boot the simulator
@@ -26,6 +31,9 @@ platform :ios do
     # Wait for simulator to be ready
     sleep(10)
 
+    # Set environment variable before running tests
+    ENV["SNAPSHOT_ARTIFACTS"] = "#{Dir.pwd}/fastlane/test_output/snapshots"
+    
     # Run tests
     scan(
       project: "#{Dir.pwd}/GithubActions.xcodeproj",
@@ -46,11 +54,9 @@ platform :ios do
         "CI=true",
         "ENABLE_TESTABILITY=YES",
         "ONLY_ACTIVE_ARCH=YES",
-        "-destination 'platform=iOS Simulator,id=#{device_udid},OS=17.4'"
-      ].join(" "),
-      env: {
-        "SNAPSHOT_ARTIFACTS" => "#{Dir.pwd}/fastlane/test_output/snapshots"
-      }
+        "-destination 'platform=iOS Simulator,id=#{device_udid},OS=17.4'",
+        "SNAPSHOT_ARTIFACTS='#{ENV["SNAPSHOT_ARTIFACTS"]}'"
+      ].join(" ")
     )
   end
 end
