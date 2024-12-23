@@ -32,8 +32,9 @@ let package = Package(
         .target(
             name: "MyFeature",
             dependencies: [
-                            .product(name: "Xcore", package: "Xcore")  // Ensure this is needed
-                        ]
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "Xcore", package: "Xcore")  // Ensure this is needed
+            ]
         ),
         .target(
             name: "MyTestSupport",
@@ -51,7 +52,8 @@ let package = Package(
             dependencies: [
                 "MyFeature",
                 "MyTestSupport",
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "Xcore", package: "Xcore")
             ]
         ),
     ]
