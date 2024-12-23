@@ -70,15 +70,10 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
-
-      api_key_path = File.join(Dir.pwd, "AuthKey.p8")
-      File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
-
-      # Set up App Store Connect API
       app_store_connect_api_key(
         key_id: ENV["API_KEY"],
         issuer_id: ENV["ISSUER_ID"],
-        key_filepath: api_key_path
+        key_content: ENV["API_KEY_BASE64"]
       )
   
       current_build = latest_testflight_build_number(
@@ -98,11 +93,16 @@ platform :ios do
       build_ios_app(
         project: "GithubActions.xcodeproj",
         scheme: "GithubActions",
+        configuration: "Release",  # Make sure to use Release configuration
         export_method: "app-store",
-        configuration: "Release",
         clean: true,
+        skip_profile_detection: true,
+        build_path: "build",
+        archive_path: "build/archive",
         output_directory: "build",
         output_name: "LFM-GHactions.ipa",
+        include_bitcode: false,
+        include_symbols: false,
         export_options: {
           provisioningProfiles: {
             "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
@@ -117,9 +117,6 @@ platform :ios do
         ipa: "build/LFM-GHactions.ipa",
         api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
       )
-      ensure
-        # Clean up the key file
-        File.delete(api_key_path) if File.exist?(api_key_path)
     end
   end
 end
