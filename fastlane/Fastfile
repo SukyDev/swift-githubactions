@@ -3,68 +3,41 @@ default_platform(:ios)
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    project_root = File.expand_path("../../swift-githubactions", __dir__)
-    Dir.chdir(project_root)
+    root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
+    derived_data_path = "#{root_path}/DerivedData"
+
+    # Cleanup old reference images
+    FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/ReferenceImages")
     
-    # Clear derived data and simulator state
-    FileUtils.rm_rf("DerivedData")
-    sh("xcrun simctl shutdown all 2>/dev/null || true")
-    sh("xcrun simctl erase all")
+    # Clone snapshot repository
+    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
     
-    # Clone and copy reference images
-    sh("git clone --verbose https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
-    FileUtils.mkdir_p("sumer-ios/Tests/ReferenceImages")
+    # Create directory for reference images
+    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
     
     if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
-      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "sumer-ios/Tests/ReferenceImages/", verbose: true)
-      
-      # Set permissions and verify files
-      sh("chmod -R 755 sumer-ios/Tests/ReferenceImages")
-      puts "\n📸 Reference Images:"
-      sh("ls -la sumer-ios/Tests/ReferenceImages/*/*.png") rescue puts "No PNG files found"
+      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
     end
 
-    # Create and boot the simulator
-    device_udid = sh("xcrun simctl create 'iPhone SE (3rd generation)' 'com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation' 'com.apple.CoreSimulator.SimRuntime.iOS-17-4'").strip
-    sh("xcrun simctl boot #{device_udid}")
-    
-    # Wait for simulator to be ready
-    sleep(10)
-
-    # Set environment variable before running tests
-    ENV["SNAPSHOT_ARTIFACTS"] = "#{Dir.pwd}/fastlane/test_output/snapshots"
-
-    # List available schemes
-    sh("xcodebuild -list -json") rescue put "Failed to list schemes"
-
-    # Try to find and share the scheme
-    sh("xcodebuild -scheme MyFeature -showBuildSettings") rescue begin
-	puts "Attempting to share scheme..."
-	sh("ruby -e 'require \"xcodeproj\"; Xcodeproj::Project.open(\"sumer-ios/Package.swift\".recreate_user_schemes'")
-    end
-    
-    # Run tests
+    # Run tests with explicit paths
     scan(
-      package_path: "#{Dir.pwd}/sumer-ios",
+      workspace: nil,  # Set to nil since we're using a package
+      package_path: "#{root_path}/sumer-ios",  # Point directly to package
       scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
-      derived_data_path: "DerivedData",
+      derived_data_path: derived_data_path,
       output_style: 'raw',
       output_types: 'raw,html,junit',
       result_bundle: true,
-      buildlog_path: "fastlane/test_output",
+      buildlog_path: "#{root_path}/fastlane/test_output",
       include_simulator_logs: true,
-      disable_slide_to_type: true,
-      prelaunch_simulator: true,
-      concurrent_workers: 1,
       xcargs: [
         "CI=true",
         "ENABLE_TESTABILITY=YES",
         "ONLY_ACTIVE_ARCH=YES",
-        "-destination 'platform=iOS Simulator,id=#{device_udid},OS=17.4'",
-        "SNAPSHOT_ARTIFACTS='#{ENV["SNAPSHOT_ARTIFACTS"]}'"
+        "DERIVED_DATA_PATH=#{derived_data_path}"
       ].join(" ")
     )
   end
