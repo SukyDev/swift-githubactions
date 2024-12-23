@@ -4,41 +4,44 @@ platform :ios do
   desc "Run tests including snapshots"
   lane :test do
     root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
-    derived_data_path = "#{root_path}/DerivedData"
+
+    # Print current path and contents before doing anything
+    puts "Current directory: #{Dir.pwd}"
+    sh("ls -R #{root_path}/sumer-ios/Tests")
 
     # Cleanup old reference images
-    FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/ReferenceImages")
+    FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
     
     # Clone snapshot repository
     sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
     
-    # Create directory for reference images
-    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/ReferenceImages")
+    # Create directory for reference images with correct path
+    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
     
     if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
-      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/ReferenceImages/")
+      puts "Found reference images in repository"
+      # Copy with verbose flag to see what's being copied
+      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages/", verbose: true)
+      
+      # Verify the copied files
+      puts "Contents of reference images directory after copy:"
+      sh("ls -R #{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")
     end
 
-    # Run tests with explicit paths
+    # Rest of your scan configuration...
     scan(
-      workspace: nil,  # Set to nil since we're using a package
-      package_path: "#{root_path}/sumer-ios",  # Point directly to package
+      package_path: "#{root_path}/sumer-ios",
       scheme: "MyFeature",
       device: "iPhone SE (3rd generation)",
       clean: true,
       configuration: "Debug",
-      derived_data_path: derived_data_path,
+      derived_data_path: "#{root_path}/DerivedData",
       output_style: 'raw',
       output_types: 'raw,html,junit',
       result_bundle: true,
       buildlog_path: "#{root_path}/fastlane/test_output",
       include_simulator_logs: true,
-      xcargs: [
-        "CI=true",
-        "ENABLE_TESTABILITY=YES",
-        "ONLY_ACTIVE_ARCH=YES",
-        "DERIVED_DATA_PATH=#{derived_data_path}"
-      ].join(" ")
+      xcargs: "CI=true ENABLE_TESTABILITY=YES ONLY_ACTIVE_ARCH=YES"
     )
   end
 end
