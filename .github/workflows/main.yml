@@ -79,26 +79,15 @@ jobs:
           xcrun simctl create "iPhone 13" com.apple.CoreSimulator.SimDeviceType.iPhone-13 com.apple.CoreSimulator.SimRuntime.iOS-17-4
           xcrun simctl create "iPhone 13 Pro Max" com.apple.CoreSimulator.SimDeviceType.iPhone-13-Pro-Max com.apple.CoreSimulator.SimRuntime.iOS-17-4
         
-      # - name: Run Tests
-      #   env:
-      #     REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-      #     CI: true
-      #   run: |
-      #     cd sumer-ios
-      #     swift package resolve
-      #     cd .. # Go back to root for fastlane
-      #     bundle exec fastlane test
-
-      # - name: Deploy to App Store
-      #   if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
-      #   env:
-      #     API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
-      #     API_KEY: ${{ secrets.KEY_ID }}
-      #     ISSUER_ID: ${{ secrets.ISSUER_ID }}
-      #   run: |
-      #     mkdir -p ~/private_keys
-      #     echo -n "$API_KEY_BASE64" | base64 --decode -o ~/private_keys/AuthKey_$API_KEY.p8
-      #     fastlane release
+      - name: Run Tests
+        env:
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          CI: true
+        run: |
+          cd sumer-ios
+          swift package resolve
+          cd .. # Go back to root for fastlane
+          bundle exec fastlane test
 
       - name: Deploy to TestFlight
       # if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
