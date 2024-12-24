@@ -121,7 +121,8 @@ platform :ios do
         upload_to_testflight(
           skip_waiting_for_build_processing: true,
           ipa: "build/LFM-GHactions.ipa",
-          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
+          verbose: true
         )
       ensure
         # Clean up the key file
