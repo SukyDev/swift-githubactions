@@ -1,103 +1,146 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:ios)
 
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
-    # Clone snapshots repository to get reference images
-    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git snapshots_repo")
+    root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
+    test_output_path = "#{root_path}/fastlane/test_output"
+    xcresult_path = "#{test_output_path}/MyFeature.xcresult"
+
+    # Print current path and contents before doing anything
+    puts "Current directory: #{Dir.pwd}"
+    sh("ls -R #{root_path}/sumer-ios/Tests")
+
+    # Create test output directory
+    FileUtils.mkdir_p(test_output_path)
+
+    # Print directory structure before tests
+    puts "Test output directory created at: #{test_output_path}"
+    sh("ls -la #{test_output_path}")
+
+    # Cleanup old reference images
+    FileUtils.rm_rf("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
     
-    # Copy reference images to the project's test directory
-    FileUtils.mkdir_p("Tests/__Snapshots__")
-    if Dir.exist?("snapshots_repo/__Snapshots__")
-      FileUtils.cp_r(Dir["snapshots_repo/__Snapshots__/*"], "Tests/__Snapshots__/")
+    # Clone snapshot repository
+    sh("git clone https://x-access-token:#{ENV['REPO_TOKEN']}@github.com/#{ENV['SNAPSHOT_REPO']}.git GitStorageForSnapshots")
+    
+    # Create directory for reference images with correct path
+    FileUtils.mkdir_p("#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")  # Updated path
+    
+    if Dir.exist?("GitStorageForSnapshots/ReferenceImages")
+      puts "Found reference images in repository"
+      # Copy with verbose flag to see what's being copied
+      FileUtils.cp_r(Dir["GitStorageForSnapshots/ReferenceImages/."], "#{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages/", verbose: true)
+      
+      # Verify the copied files
+      puts "Contents of reference images directory after copy:"
+      sh("ls -R #{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")
     end
 
-    # Run tests
-    begin
+    # Define devices to test (if you set multiple devices, you need to add them to main.yml file also in Set up required iOS Simulators part)
+    # If we won't use multiple devices, we can remove this property and use device name value directly in scan method
+    devices = [
+      "iPhone SE (3rd generation)"
+    ]
+
+    devices.each do |device|
+      device_name = device.downcase.gsub(" ", "_").gsub("(", "").gsub(")", "")
+      xcresult_path = "#{test_output_path}/MyFeature_#{device_name}.xcresult"
+
+      # Rest of your scan configuration...
       scan(
-        scheme: "GithubActions",
-        device: "iPhone 13",
+        package_path: "#{root_path}/sumer-ios",
+        scheme: "MyFeature",
+        device: device,
         clean: true,
         configuration: "Debug",
-        build_for_testing: true,
-        derived_data_path: "DerivedData"
+        derived_data_path: "#{root_path}/DerivedData",
+        output_style: 'raw',
+        output_types: 'raw,html,junit',
+        result_bundle: true,
+        result_bundle_path: xcresult_path,
+        buildlog_path: test_output_path,
+        include_simulator_logs: true,
+        xcargs: "CI=true ENABLE_TESTABILITY=YES ONLY_ACTIVE_ARCH=YES"
       )
-      
-      scan(
-        scheme: "GithubActions",
-        device: "iPhone 13",
-        clean: false,
-        configuration: "Debug",
-        test_without_building: true,
-        derived_data_path: "DerivedData"
-      )
-
-      # If tests passed and we're on main, update reference images
-      if ENV["GITHUB_REF"] == "refs/heads/main"
-        FileUtils.rm_rf("snapshots_repo/__Snapshots__")
-        FileUtils.cp_r("Tests/__Snapshots__", "snapshots_repo/")
-        
-        Dir.chdir("snapshots_repo") do
-          sh("git config user.name 'GitHub Actions Bot'")
-          sh("git config user.email 'actions@github.com'")
-          sh("git add __Snapshots__")
-          status = sh("git status --porcelain", error_callback: ->(result) { puts result })
-          unless status.empty?
-            sh("git commit -m 'Update snapshot reference images [skip ci]'")
-            sh("git push")
-          end
-        end
-      end
-    rescue => ex
-      UI.error("Tests failed! If this is due to snapshot mismatches, check the test output for details.")
-      raise ex
     end
   end
 
-  desc "Deploy to App Store"
-  lane :release do
-    # Build the app
-    gym(
-      scheme: "GithubActions",
-      export_method: "app-store",
-      clean: true,
-      output_directory: "build",
-      export_options: {
-        provisioningProfiles: {
-          "com.ciCdTestingZesium.app" => "CiCdTestingProfile.mobileprovision"
-        }
-      }
-    )
-
-    # Set up App Store Connect API
-    app_store_connect_api_key(
-      key_id: ENV["API_KEY"],
-      issuer_id: ENV["ISSUER_ID"],
-      key_filepath: "~/private_keys/AuthKey_#{ENV['API_KEY']}.p8",
-      duration: 1200,
-      in_house: false
-    )
-
-    # Upload to App Store
-    upload_to_app_store(
-      skip_screenshots: true,
-      skip_metadata: true,
-      precheck_include_in_app_purchases: false
-    )
+  platform :ios do
+    desc "Build and upload to TestFlight"
+    lane :beta do
+      api_key_path = File.join(Dir.pwd, "AuthKey.p8")
+      profile_path = File.join(Dir.pwd, "CiCdTestingProfile.mobileprovision")
+      
+      begin
+        # Decode and save API key and provisioning profile
+        File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+        File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
+        
+        # Extract profile name using security cms
+        profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
+        UI.message("📄 Provisioning profile name: #{profile_name}")
+        
+        # Install the provisioning profile
+        profile_uuid = sh("security cms -D -i #{profile_path} | plutil -extract UUID raw -o - -", log: false).strip
+        destination_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/#{profile_uuid}.mobileprovision")
+        
+        FileUtils.mkdir_p(File.dirname(destination_path))
+        FileUtils.cp(profile_path, destination_path)
+        UI.message("📲 Installed provisioning profile to: #{destination_path}")
+        
+        app_store_connect_api_key(
+          key_id: ENV["API_KEY"],
+          issuer_id: ENV["ISSUER_ID"],
+          key_filepath: api_key_path
+        )
+  
+        current_build = latest_testflight_build_number(
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
+          app_identifier: "com.ciCdTestingZesium.app"
+        )
+        
+        new_build_number = current_build + 1
+        UI.message("🔢 Current build: #{current_build}, new build will be: #{new_build_number}")
+        
+        increment_build_number(
+          build_number: new_build_number,
+          xcodeproj: "GithubActions.xcodeproj"
+        )
+        
+        build_ios_app(
+          project: "GithubActions.xcodeproj",
+          scheme: "GithubActions",
+          configuration: "Prod",
+          export_method: "app-store",
+          clean: true,
+          skip_profile_detection: true,
+          build_path: "build",
+          archive_path: "build/archive",
+          output_directory: "build",
+          output_name: "LFM-GHactions.ipa",
+          include_bitcode: false,
+          include_symbols: false,
+          export_options: {
+            method: "app-store",
+            provisioningProfiles: {
+              "com.ciCdTestingZesium.app" => profile_name
+            },
+            signingStyle: "manual"
+          }
+        )
+        
+        upload_to_testflight(
+          skip_waiting_for_build_processing: true,
+          ipa: "build/LFM-GHactions.ipa",
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+        )
+      ensure
+        # Clean up temporary files
+        [api_key_path, profile_path].each do |file|
+          File.delete(file) if File.exist?(file)
+        end
+      end
+    end
   end
 end

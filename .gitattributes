@@ -1,1 +1,27 @@
-sumer-ios/Tests/MyTestSupport/ReferenceImages/**/*.png filter=lfs diff=lfs merge=lfs -text
+# Snapshot testing
+*.png binary diff=exif
+**/ReferenceImages/** binary
+**/FailureDiffs/** binary
+
+
+# Swift specific
+*.pbxproj merge= union
+*.swift text diff=swift
+*.h text diff=objc
+*.m text diff=objc
+
+# Xcode
+*.xcscheme binary
+*.xcworkspace binary
+*.xcuserstate binary
+
+# Handle line endings automatically for files detected as text
+* text=auto
+
+# Image files
+*.png binary diff=exif
+*.jpg binary diff=exif
+
+
+# Test output
+**/test_output/** binary

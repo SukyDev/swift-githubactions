@@ -249,6 +249,7 @@
 			mainGroup = 80DAC9932CE39ADD00609BF6;
 			packageReferences = (
 				8086DADD2CE4C1B90018C023 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
+				D5A8E3222D193D0500C6915F /* XCRemoteSwiftPackageReference "xcore" */,
 			);
 			productRefGroup = 80DAC99D2CE39ADD00609BF6 /* Products */;
 			projectDirPath = "";
@@ -453,7 +454,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"GithubActions/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 5QQR76XAUZ;
@@ -500,7 +501,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"GithubActions/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 5QQR76XAUZ;
@@ -682,6 +683,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 1.17.5;
+			};
+		};
+		D5A8E3222D193D0500C6915F /* XCRemoteSwiftPackageReference "xcore" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/luismachado/xcore";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
