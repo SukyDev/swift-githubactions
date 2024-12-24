@@ -70,7 +70,7 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
-      # First, properly handle the base64 API key
+      # First, we need to properly handle the base64 API key
       api_key_path = File.join(Dir.pwd, "AuthKey.p8")
       File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
       
@@ -98,7 +98,7 @@ platform :ios do
         build_ios_app(
           project: "GithubActions.xcodeproj",
           scheme: "GithubActions",
-          configuration: "Release",
+          configuration: "Prod",
           export_method: "app-store",
           clean: true,
           skip_profile_detection: true,
