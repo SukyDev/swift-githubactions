@@ -70,11 +70,26 @@ platform :ios do
   platform :ios do
     desc "Build and upload to TestFlight"
     lane :beta do
-      # First, we need to properly handle the base64 API key
       api_key_path = File.join(Dir.pwd, "AuthKey.p8")
-      File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+      profile_path = File.join(Dir.pwd, "CiCdTestingProfile.mobileprovision")
       
       begin
+        # Decode and save API key and provisioning profile
+        File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+        File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
+        
+        # Extract profile name using security cms
+        profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
+        UI.message("📄 Provisioning profile name: #{profile_name}")
+        
+        # Install the provisioning profile
+        profile_uuid = sh("security cms -D -i #{profile_path} | plutil -extract UUID raw -o - -", log: false).strip
+        destination_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/#{profile_uuid}.mobileprovision")
+        
+        FileUtils.mkdir_p(File.dirname(destination_path))
+        FileUtils.cp(profile_path, destination_path)
+        UI.message("📲 Installed provisioning profile to: #{destination_path}")
+        
         app_store_connect_api_key(
           key_id: ENV["API_KEY"],
           issuer_id: ENV["ISSUER_ID"],
@@ -87,8 +102,7 @@ platform :ios do
         )
         
         new_build_number = current_build + 1
-        puts "Current TestFlight build: #{current_build}"
-        puts "New build number will be: #{new_build_number}"
+        UI.message("🔢 Current build: #{current_build}, new build will be: #{new_build_number}")
         
         increment_build_number(
           build_number: new_build_number,
@@ -108,12 +122,11 @@ platform :ios do
           output_name: "LFM-GHactions.ipa",
           include_bitcode: false,
           include_symbols: false,
-          xcargs: "ENABLE_TESTING=NO",
           export_options: {
+            method: "app-store",
             provisioningProfiles: {
-              "com.ciCdTestingZesium.app" => ENV["BUILD_PROVISION_PROFILE_BASE64"]
+              "com.ciCdTestingZesium.app" => profile_name
             },
-            signingCertificate: ENV["BUILD_CERTIFICATE_BASE64"],
             signingStyle: "manual"
           }
         )
@@ -121,12 +134,13 @@ platform :ios do
         upload_to_testflight(
           skip_waiting_for_build_processing: true,
           ipa: "build/LFM-GHactions.ipa",
-          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
-          verbose: true
+          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
         )
       ensure
-        # Clean up the key file
-        File.delete(api_key_path) if File.exist?(api_key_path)
+        # Clean up temporary files
+        [api_key_path, profile_path].each do |file|
+          File.delete(file) if File.exist?(file)
+        end
       end
     end
   end
