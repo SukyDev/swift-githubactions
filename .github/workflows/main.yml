@@ -72,12 +72,11 @@ jobs:
           rm -rf ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
           rm -rf .build
 
+      # Set up required iOS Simulators for testing
       - name: Set up iOS Simulators
         run: |
           xcrun simctl delete all
           xcrun simctl create "iPhone SE (3rd generation)" com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation com.apple.CoreSimulator.SimRuntime.iOS-17-4
-          xcrun simctl create "iPhone 13" com.apple.CoreSimulator.SimDeviceType.iPhone-13 com.apple.CoreSimulator.SimRuntime.iOS-17-4
-          xcrun simctl create "iPhone 13 Pro Max" com.apple.CoreSimulator.SimDeviceType.iPhone-13-Pro-Max com.apple.CoreSimulator.SimRuntime.iOS-17-4
         
       - name: Run Tests
         env:

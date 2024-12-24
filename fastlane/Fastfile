@@ -37,11 +37,10 @@ platform :ios do
       sh("ls -R #{root_path}/sumer-ios/Tests/MyTestSupport/ReferenceImages")
     end
 
-    # Define devices to test
+    # Define devices to test (if you set multiple devices, you need to add them to main.yml file also in Set up required iOS Simulators part)
+    # If we won't use multiple devices, we can remove this property and use device name value directly in scan method
     devices = [
-      "iPhone SE (3rd generation)",
-      "iPhone 13",
-      "iPhone 13 Pro Max"
+      "iPhone SE (3rd generation)"
     ]
 
     devices.each do |device|
