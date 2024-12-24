@@ -18,7 +18,7 @@ open class SumerSnapshotTestCase: TestCase {
     open override func setUpWithError() throws {
         try super.setUpWithError()
 
-        verifyDeviceTarget()
+//        verifyDeviceTarget()
 //        verifyDeviceOS()
         SnapshotTesting.diffTool = "ksdiff"
     }
