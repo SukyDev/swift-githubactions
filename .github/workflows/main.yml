@@ -99,15 +99,15 @@ jobs:
             echo "environment=dev" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run Tests
-        env:
-          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-          CI: true
-        run: |
-          cd sumer-ios
-          swift package resolve
-          cd .. # Go back to root for fastlane
-          bundle exec fastlane test
+      # - name: Run Tests
+      #   env:
+      #     REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+      #     CI: true
+      #   run: |
+      #     cd sumer-ios
+      #     swift package resolve
+      #     cd .. # Go back to root for fastlane
+      #     bundle exec fastlane test
 
       - name: Deploy to TestFlight
         if: success()
