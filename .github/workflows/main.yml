@@ -3,13 +3,13 @@ name: iOS CI
 on:
   push:
     branches: 
-      - 'dev/**'
-      - 'staging/**'
+      - 'dev'
+      - 'staging'
       - 'main'
   pull_request:
     branches: 
-      - 'dev/**'
-      - 'staging/**'
+      - 'dev'
+      - 'staging'
       - 'main'
 
 env:
