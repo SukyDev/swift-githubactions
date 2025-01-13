@@ -6,7 +6,7 @@ ENVIRONMENT_CONFIG = {
     app_identifier: "com.ciCdTestingZesium.dev",
     scheme: "GithubActions-Dev",
     configuration: "Debug",
-    profile_name_prefix: "CiCdTestingProfileDev-2"
+    profile_name_prefix: "CiCdTestingProfileDev"
   },
   'staging' => {
     app_identifier: "com.ciCdTestingZesium.staging",
@@ -101,7 +101,7 @@ devices.each do |device|
     begin
       # Decode and save API key and provisioning profile
       File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
-      File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
+      File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64_#{environment.upcase}"]))
       
       # Extract profile name using security cms
       profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
