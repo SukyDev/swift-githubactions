@@ -6,7 +6,7 @@ ENVIRONMENT_CONFIG = {
     app_identifier: "com.ciCdTestingZesium.dev",
     scheme: "GithubActions-Dev",
     configuration: "Debug",
-    profile_name_prefix: "CiCdTestingProfileDev"
+    profile_name_prefix: "CiCdTestingProfileDev-2"
   },
   'staging' => {
     app_identifier: "com.ciCdTestingZesium.staging",
