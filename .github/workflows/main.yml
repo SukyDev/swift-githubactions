@@ -2,16 +2,31 @@ name: iOS CI
 
 on:
   push:
-    branches: [ "vs/github-actions-with-fastlane" ]
+    branches: 
+      - 'dev/**'
+      - 'staging/**'
+      - 'main'
   pull_request:
-    branches: [ "vs/github-actions-with-fastlane"]
+    branches: 
+      - 'dev/**'
+      - 'staging/**'
+      - 'main'
 
 env:
   SNAPSHOT_REPO: "SukyDev/GitStorageForSnapshots"
 
 jobs:
-  test:
+  test-and-deploy:
     runs-on: macos-latest
+
+    env:
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
+      API_KEY: ${{ secrets.KEY_ID }}
+      ISSUER_ID: ${{ secrets.ISSUER_ID }}
     
     steps:
       - uses: actions/checkout@v4
@@ -31,11 +46,6 @@ jobs:
         run: bundle install
 
       - name: Install certificates and profiles
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
           PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
@@ -87,18 +97,29 @@ jobs:
           swift package resolve
           cd .. # Go back to root for fastlane
           bundle exec fastlane test
+      
+      - name: Determine Environment
+        id: determine_env
+        run: |
+          if [[ ${{ github.ref }} == refs/heads/main ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          elif [[ ${{ github.ref }} == refs/heads/staging/* ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Tests
+        env:
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          CI: true
+        run: bundle exec fastlane test
 
       - name: Deploy to TestFlight
         if: success()
         env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
-          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
-          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          API_KEY_BASE64: ${{ secrets.API_KEY_BASE64 }}
-          API_KEY: ${{ secrets.KEY_ID }}
-          ISSUER_ID: ${{ secrets.ISSUER_ID }}
-        run: bundle exec fastlane beta
+          ENVIRONMENT: ${{ steps.determine_env.outputs.environment }}
+        run: bundle exec fastlane beta environment:${{ steps.determine_env.outputs.environment }}
 
       - name: Cleanup
         if: always()

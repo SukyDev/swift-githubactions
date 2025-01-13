@@ -1,13 +1,35 @@
 default_platform(:ios)
 
+# Configuration for different environments
+ENVIRONMENT_CONFIG = {
+  'dev' => {
+    app_identifier: "com.ciCdTestingZesium.dev",
+    scheme: "GithubActions-Dev",
+    configuration: "Debug",
+    profile_name_prefix: "DevProfile"
+  },
+  'staging' => {
+    app_identifier: "com.ciCdTestingZesium.staging",
+    scheme: "GithubActions-Staging",
+    configuration: "Release",
+    profile_name_prefix: "StagingProfile"
+  },
+  'prod' => {
+    app_identifier: "com.ciCdTestingZesium.app",
+    scheme: "GithubActions",
+    configuration: "Prod",
+    profile_name_prefix: "ProdProfile"
+  }
+}
+
 platform :ios do
   desc "Run tests including snapshots"
   lane :test do
     root_path = "/Users/runner/work/swift-githubactions/swift-githubactions"
     test_output_path = "#{root_path}/fastlane/test_output"
-    xcresult_path = "#{test_output_path}/MyFeature.xcresult"
+    xcresult_path = “#{test_output_path}/MyFeature.xcresult"
 
-    # Print current path and contents before doing anything
+# Print current path and contents before doing anything
     puts "Current directory: #{Dir.pwd}"
     sh("ls -R #{root_path}/sumer-ios/Tests")
 
@@ -43,11 +65,10 @@ platform :ios do
       "iPhone SE (3rd generation)"
     ]
 
-    devices.each do |device|
+devices.each do |device|
       device_name = device.downcase.gsub(" ", "_").gsub("(", "").gsub(")", "")
       xcresult_path = "#{test_output_path}/MyFeature_#{device_name}.xcresult"
 
-      # Rest of your scan configuration...
       scan(
         package_path: "#{root_path}/sumer-ios",
         scheme: "MyFeature",
@@ -66,80 +87,84 @@ platform :ios do
     end
   end
 
-  platform :ios do
-    desc "Build and upload to TestFlight"
-    lane :beta do
-      api_key_path = File.join(Dir.pwd, "AuthKey.p8")
-      profile_path = File.join(Dir.pwd, "CiCdTestingProfile.mobileprovision")
+
+  desc "Build and upload to TestFlight"
+  lane :beta do |options|
+    environment = options[:environment] || 'dev'
+    config = ENVIRONMENT_CONFIG[environment]
+    
+    UI.message("🚀 Deploying to #{environment} environment")
+    
+    api_key_path = File.join(Dir.pwd, "AuthKey.p8")
+    profile_path = File.join(Dir.pwd, "#{config[:profile_name_prefix]}.mobileprovision")
+    
+    begin
+      # Decode and save API key and provisioning profile
+      File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
+      File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
       
-      begin
-        # Decode and save API key and provisioning profile
-        File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
-        File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
-        
-        # Extract profile name using security cms
-        profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
-        UI.message("📄 Provisioning profile name: #{profile_name}")
-        
-        # Install the provisioning profile
-        profile_uuid = sh("security cms -D -i #{profile_path} | plutil -extract UUID raw -o - -", log: false).strip
-        destination_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/#{profile_uuid}.mobileprovision")
-        
-        FileUtils.mkdir_p(File.dirname(destination_path))
-        FileUtils.cp(profile_path, destination_path)
-        UI.message("📲 Installed provisioning profile to: #{destination_path}")
-        
-        app_store_connect_api_key(
-          key_id: ENV["API_KEY"],
-          issuer_id: ENV["ISSUER_ID"],
-          key_filepath: api_key_path
-        )
-  
-        current_build = latest_testflight_build_number(
-          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
-          app_identifier: "com.ciCdTestingZesium.app"
-        )
-        
-        new_build_number = current_build + 1
-        UI.message("🔢 Current build: #{current_build}, new build will be: #{new_build_number}")
-        
-        increment_build_number(
-          build_number: new_build_number,
-          xcodeproj: "GithubActions.xcodeproj"
-        )
-        
-        build_ios_app(
-          project: "GithubActions.xcodeproj",
-          scheme: "GithubActions",
-          configuration: "Prod",
-          export_method: "app-store",
-          clean: true,
-          skip_profile_detection: true,
-          build_path: "build",
-          archive_path: "build/archive",
-          output_directory: "build",
-          output_name: "LFM-GHactions.ipa",
-          include_bitcode: false,
-          include_symbols: false,
-          export_options: {
-            method: "app-store",
-            provisioningProfiles: {
-              "com.ciCdTestingZesium.app" => profile_name
-            },
-            signingStyle: "manual"
-          }
-        )
-        
-        upload_to_testflight(
-          skip_waiting_for_build_processing: true,
-          ipa: "build/LFM-GHactions.ipa",
-          api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
-        )
-      ensure
-        # Clean up temporary files
-        [api_key_path, profile_path].each do |file|
-          File.delete(file) if File.exist?(file)
-        end
+      # Extract profile name using security cms
+      profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
+      UI.message("📄 Provisioning profile name: #{profile_name}")
+      
+      # Install the provisioning profile
+      profile_uuid = sh("security cms -D -i #{profile_path} | plutil -extract UUID raw -o - -", log: false).strip
+      destination_path = File.expand_path("~/Library/MobileDevice/Provisioning Profiles/#{profile_uuid}.mobileprovision")
+      
+      FileUtils.mkdir_p(File.dirname(destination_path))
+      FileUtils.cp(profile_path, destination_path)
+      UI.message("📲 Installed provisioning profile to: #{destination_path}")
+      
+      app_store_connect_api_key(
+        key_id: ENV["API_KEY"],
+        issuer_id: ENV["ISSUER_ID"],
+        key_filepath: api_key_path
+      )
+
+      current_build = latest_testflight_build_number(
+        api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY],
+        app_identifier: config[:app_identifier]
+      )
+      
+      new_build_number = current_build + 1
+      UI.message("🔢 Current build: #{current_build}, new build will be: #{new_build_number}")
+      
+      increment_build_number(
+        build_number: new_build_number,
+        xcodeproj: "GithubActions.xcodeproj"
+      )
+      
+      build_ios_app(
+        project: "GithubActions.xcodeproj",
+        scheme: config[:scheme],
+        configuration: config[:configuration],
+        export_method: "app-store",
+        clean: true,
+        skip_profile_detection: true,
+        build_path: "build",
+        archive_path: "build/archive",
+        output_directory: "build",
+        output_name: "LFM-GHactions-#{environment}.ipa",
+        include_bitcode: false,
+        include_symbols: false,
+        export_options: {
+          method: "app-store",
+          provisioningProfiles: {
+            config[:app_identifier] => profile_name
+          },
+          signingStyle: "manual"
+        }
+      )
+      
+      upload_to_testflight(
+        skip_waiting_for_build_processing: true,
+        ipa: "build/LFM-GHactions-#{environment}.ipa",
+        api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
+      )
+    ensure
+      # Clean up temporary files
+      [api_key_path, profile_path].each do |file|
+        File.delete(file) if File.exist?(file)
       end
     end
   end
