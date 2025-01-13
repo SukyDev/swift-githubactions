@@ -35,6 +35,20 @@
                ReferencedContainer = "container:sumer-ios">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "80DAC99B2CE39ADD00609BF6"
+               BuildableName = "LFM-GHactions.app"
+               BlueprintName = "LFM-GHactions"
+               ReferencedContainer = "container:GithubActions.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -54,39 +68,28 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D58952892D3524E6002F814C"
-            BuildableName = "LFM-GHactions-Dev.app"
-            BlueprintName = "LFM-GHactions-Dev"
-            ReferencedContainer = "container:GithubActions.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D58952892D3524E6002F814C"
-            BuildableName = "LFM-GHactions-Dev.app"
-            BlueprintName = "LFM-GHactions-Dev"
-            ReferencedContainer = "container:GithubActions.xcodeproj">
+            BlueprintIdentifier = "MyFeatureTests"
+            BuildableName = "MyFeatureTests"
+            BlueprintName = "MyFeatureTests"
+            ReferencedContainer = "container:sumer-ios">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>
