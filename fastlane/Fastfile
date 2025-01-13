@@ -1,4 +1,5 @@
 default_platform(:ios)
+xcversion(version: "16.2")  # Selects Xcode 16.2
 
 # Configuration for different environments
 ENVIRONMENT_CONFIG = {
@@ -6,7 +7,7 @@ ENVIRONMENT_CONFIG = {
     app_identifier: "com.ciCdTestingZesium.dev",
     scheme: "GithubActions-Dev",
     configuration: "Debug",
-    profile_name_prefix: "DevProfile"
+    profile_name_prefix: "CiCdTestingProfileDev"
   },
   'staging' => {
     app_identifier: "com.ciCdTestingZesium.staging",
@@ -18,7 +19,7 @@ ENVIRONMENT_CONFIG = {
     app_identifier: "com.ciCdTestingZesium.app",
     scheme: "GithubActions",
     configuration: "Prod",
-    profile_name_prefix: "ProdProfile"
+    profile_name_prefix: "CiCdTestingProfile"
   }
 }
 
@@ -101,7 +102,7 @@ devices.each do |device|
     begin
       # Decode and save API key and provisioning profile
       File.write(api_key_path, Base64.decode64(ENV["API_KEY_BASE64"]))
-      File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64"]))
+      File.write(profile_path, Base64.decode64(ENV["BUILD_PROVISION_PROFILE_BASE64_#{environment.upcase}"]))
       
       # Extract profile name using security cms
       profile_name = sh("security cms -D -i #{profile_path} | plutil -extract Name raw -o - -", log: false).strip
@@ -144,7 +145,7 @@ devices.each do |device|
         build_path: "build",
         archive_path: "build/archive",
         output_directory: "build",
-        output_name: "LFM-GHactions-#{environment}.ipa",
+        output_name: "LFM-GHactions.ipa",
         include_bitcode: false,
         include_symbols: false,
         export_options: {
@@ -158,7 +159,7 @@ devices.each do |device|
       
       upload_to_testflight(
         skip_waiting_for_build_processing: true,
-        ipa: "build/LFM-GHactions-#{environment}.ipa",
+        ipa: "build/LFM-GHactions.ipa",
         api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
       )
     ensure

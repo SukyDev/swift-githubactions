@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -54,6 +54,12 @@
 		D59F72CF2D146DA400BCE9EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D589528B2D3524E6002F814C /* LFM-GHactions-Dev */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "LFM-GHactions-Dev"; sourceTree = "<group>"; };
+		D589529C2D3524E7002F814C /* LFM-GHactions-DevTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "LFM-GHactions-DevTests"; sourceTree = "<group>"; };
+		D58952A62D3524E7002F814C /* LFM-GHactions-DevUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "LFM-GHactions-DevUITests"; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		80DAC9992CE39ADD00609BF6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -96,6 +102,9 @@
 				80DAC9B02CE39ADE00609BF6 /* GithubActionsTests */,
 				80DAC9BA2CE39ADE00609BF6 /* GithubActionsUITests */,
 				8086DAE02CE4C20E0018C023 /* sumer-ios */,
+				D589528B2D3524E6002F814C /* LFM-GHactions-Dev */,
+				D589529C2D3524E7002F814C /* LFM-GHactions-DevTests */,
+				D58952A62D3524E7002F814C /* LFM-GHactions-DevUITests */,
 				8086DAE12CE4C2EB0018C023 /* Frameworks */,
 				80DAC99D2CE39ADD00609BF6 /* Products */,
 			);
@@ -222,7 +231,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1540;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					80DAC99B2CE39ADD00609BF6 = {
@@ -454,7 +463,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"GithubActions/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 5QQR76XAUZ;
@@ -479,10 +488,10 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.ciCdTestingZesium.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ciCdTestingZesium.dev;
 				PRODUCT_NAME = "LFM-GHactions";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = CiCdTestingProfile;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = CiCdTestingProfileDev;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -501,7 +510,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"GithubActions/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 5QQR76XAUZ;
