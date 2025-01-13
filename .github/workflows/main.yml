@@ -87,16 +87,6 @@ jobs:
         run: |
           xcrun simctl delete all
           xcrun simctl create "iPhone SE (3rd generation)" com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation com.apple.CoreSimulator.SimRuntime.iOS-17-4
-        
-      - name: Run Tests
-        env:
-          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-          CI: true
-        run: |
-          cd sumer-ios
-          swift package resolve
-          cd .. # Go back to root for fastlane
-          bundle exec fastlane test
       
       - name: Determine Environment
         id: determine_env
@@ -113,7 +103,11 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
           CI: true
-        run: bundle exec fastlane test
+        run: |
+          cd sumer-ios
+          swift package resolve
+          cd .. # Go back to root for fastlane
+          bundle exec fastlane test
 
       - name: Deploy to TestFlight
         if: success()
