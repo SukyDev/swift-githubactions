@@ -1,4 +1,5 @@
 default_platform(:ios)
+xcversion(version: "16.2")  # Selects Xcode 16.2
 
 # Configuration for different environments
 ENVIRONMENT_CONFIG = {
