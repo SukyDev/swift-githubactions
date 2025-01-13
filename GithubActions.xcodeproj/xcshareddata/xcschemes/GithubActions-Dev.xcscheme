@@ -15,20 +15,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "80DAC99B2CE39ADD00609BF6"
-               BuildableName = "LFM-GHactions.app"
-               BlueprintName = "LFM-GHactions"
-               ReferencedContainer = "container:GithubActions.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "MyFeatureTests"
                BuildableName = "MyFeatureTests"
                BlueprintName = "MyFeatureTests"
@@ -72,9 +58,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "80DAC99B2CE39ADD00609BF6"
-            BuildableName = "LFM-GHactions.app"
-            BlueprintName = "LFM-GHactions"
+            BlueprintIdentifier = "D58952892D3524E6002F814C"
+            BuildableName = "LFM-GHactions-Dev.app"
+            BlueprintName = "LFM-GHactions-Dev"
             ReferencedContainer = "container:GithubActions.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -89,9 +75,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "80DAC99B2CE39ADD00609BF6"
-            BuildableName = "LFM-GHactions.app"
-            BlueprintName = "LFM-GHactions"
+            BlueprintIdentifier = "D58952892D3524E6002F814C"
+            BuildableName = "LFM-GHactions-Dev.app"
+            BlueprintName = "LFM-GHactions-Dev"
             ReferencedContainer = "container:GithubActions.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
