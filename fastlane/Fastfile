@@ -3,7 +3,7 @@ default_platform(:ios)
 # Configuration for different environments
 ENVIRONMENT_CONFIG = {
   'dev' => {
-    app_identifier: "com.ciCdTestingZesium.dev",
+    app_identifier: "com.ciCdTestingZesium.app",
     scheme: "GithubActions-Dev",
     configuration: "Debug",
     profile_name_prefix: "DevProfile"
