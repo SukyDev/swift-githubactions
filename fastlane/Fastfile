@@ -144,7 +144,7 @@ devices.each do |device|
         build_path: "build",
         archive_path: "build/archive",
         output_directory: "build",
-        output_name: "LFM-GHactions-#{environment}.ipa",
+        output_name: "LFM-GHactions.ipa",
         include_bitcode: false,
         include_symbols: false,
         export_options: {
@@ -158,7 +158,7 @@ devices.each do |device|
       
       upload_to_testflight(
         skip_waiting_for_build_processing: true,
-        ipa: "build/LFM-GHactions-#{environment}.ipa",
+        ipa: "build/LFM-GHactions.ipa",
         api_key: lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
       )
     ensure
